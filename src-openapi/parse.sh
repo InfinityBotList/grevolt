@@ -55,18 +55,15 @@ sed -i '' '/package/d' types/types.go
 # Remove /* ... */ comments, remove '' if on linux
 sed -i '' '/\/\*/,/\*\//d' types/types.go
 
-# Replace AllOfMemberAvatar with Attachment, because Revolt OpenAPI memes
-sed -i '' 's/AllOfMemberAvatar/Attachment/g' types/types.go
-
-# Replace os.File with Attachment, because Revolt OpenAPI memes
-sed -i '' 's/os.File/Attachment/g' types/types.go
-
 # Replace Permissions
 sed -i '' 's/Permission Permission/PermissionFriendly PermissionFriendly/g' types/types.go
 sed -i '' 's/type Permission string/type PermissionFriendly string/g' types/types.go
 
 # Rename *AllOfBannedUserAvatar to *Attachment
 remove_replace Attachment File # Replaced by File
+is_file os.File
+is_file Attachment
+is_file AllOfMemberAvatar
 is_file AllOfBannedUserAvatar
 is_file AllOfUserAvatar
 is_file AllOfServerIcon
