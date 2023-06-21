@@ -1,0 +1,12 @@
+package types
+
+type Object map[string]any
+
+// Emoji parent, not properly generated
+type EmojiParent struct {
+    Type string     `json:"type"`
+    ID string      `json:"id"`
+}
+
+// Begin types
+
