@@ -3,7 +3,7 @@
 // Revolt does not provide bitflags so this file is used to provide a similar interface
 package flags
 
-type UserFlag int32
+type UserFlag int64
 
 const (
 	// User has been suspended from the platform
@@ -16,14 +16,14 @@ const (
 	SPAM_UserFlag = 8
 )
 
-type BotFlag int32
+type BotFlag int64
 
 const (
 	VERIFIED_BotFlag = 1
 	OFFICIAL_BotFlag = 2
 )
 
-type ServerFlag int32
+type ServerFlag int64
 
 const (
 	VERIFIED_ServerFlag = 1
@@ -33,6 +33,6 @@ const (
 // Returns whether the user has the given flag
 //
 // E.g. HasFlag(user.Flags, SUSPENDED_UserFlag)
-func HasFlag(flags int32, flag int32) bool {
+func HasFlag(flags int64, flag int64) bool {
 	return flags&flag != 0
 }

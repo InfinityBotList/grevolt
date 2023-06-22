@@ -80,6 +80,7 @@ remove_struct AllOfMessageWebhook # We have MessageWebhook which is the same thi
 remove_replace AllOfUserStatusPresence string
 remove_struct AllOfUserStatus # UserStatus is way better than this
 remove_struct AllOfUserProfile # UserProfile is way better than this
+remove_struct Channel # Its empty, needs to be patched
 remove_replace AllOfUserRelationship string
 
 # Replace SnapshotContent with *Object
@@ -93,6 +94,9 @@ remove_struct EmojiParent
 
 # Another really annoying thing is *string, make this string
 sed -i '' 's/\*string/string/g' types/types.go
+
+# All int32's should be int64, swagger bug
+sed -i '' 's/int32/int64/g' types/types.go
 
 # Finalize
 cp src-openapi/parse.patch tmp/parse.patch

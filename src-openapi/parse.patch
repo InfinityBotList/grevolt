@@ -4,27 +4,55 @@ type Object map[string]any
 
 // Emoji parent, not properly generated
 type EmojiParent struct {
-    Type string     `json:"type"`
-    ID string      `json:"id"`
+	Type string `json:"type"`
+	ID   string `json:"id"`
 }
 
 // API error, not properly generated
 type APIError map[string]any
 
 func (e APIError) Type() string {
-    typ, ok := e["type"]
+	typ, ok := e["type"]
 
-    if !ok {
-        return "Unknown"
-    }
+	if !ok {
+		return "Unknown"
+	}
 
-    // Check if typ is a string
-    if _, ok := typ.(string); !ok {
-        return "Unknown"
-    }
+	// Check if typ is a string
+	if _, ok := typ.(string); !ok {
+		return "Unknown"
+	}
 
-    return typ.(string)
+	return typ.(string)
 }
 
-// Begin types
+// Channel struct.
+type Channel struct {
+	Id                 string         `json:"_id,omitempty"`
+	ChannelType        string         `json:"channel_type,omitempty"`
+	UserId             string         `json:"user,omitempty"`
+	Nonce              string         `json:"nonce,omitempty"`
+	Active             bool           `json:"active,omitempty"`
+	Recipients         []string       `json:"recipients,omitempty"`
+	LastMessageID      string         `json:"last_message_id,omitempty"`
+	Name               string         `json:"name,omitempty"`
+	OwnerId            string         `json:"owner,omitempty"`
+	Description        string         `json:"description,omitempty"`
+	Icon               *File          `json:"icon,omitempty"`
+	DefaultPermissions *OverrideField `json:"default_permissions,omitempty"`
+	RolePermissions    interface{}    `json:"role_permissions,omitempty"`
+	Permissions        uint           `json:"permissions,omitempty"`
+	NSFW               bool           `json:"nsfw,omitempty"`
+}
 
+type ChannelList []Channel
+
+type ChannelType string
+
+// List of ChannelType
+const (
+	TEXT_ChannelType ChannelType = "Text"
+	VOICE_ChannelType ChannelType = "Voice"
+)
+
+// Begin types

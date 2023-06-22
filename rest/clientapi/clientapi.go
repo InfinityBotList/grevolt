@@ -281,3 +281,48 @@ func (r ClientRequest) DoAndMarshal(v any) (*types.APIError, error) {
 		return &vErr, nil
 	}
 }
+
+// Executes the request and unmarshals the response body if the response is OK otherwise returns error
+func (r ClientRequest) DoAndMarshalBytes() ([]byte, *types.APIError, error) {
+	resp, err := r.Do()
+
+	if err != nil {
+		return []byte{}, nil, err
+	}
+
+	if resp.Ok() {
+		body, err := resp.Body()
+
+		if err != nil {
+			return []byte{}, nil, err
+		}
+
+		return body, nil, nil
+	} else {
+		if resp.Response.StatusCode == 401 {
+			// Try and read body
+			body := resp.Response.Body
+
+			if body == nil {
+				return []byte{}, nil, fmt.Errorf("unauthorized")
+			}
+
+			bodyBytes, err := io.ReadAll(body)
+
+			if err != nil {
+				return []byte{}, nil, fmt.Errorf("unauthorized, could not read body")
+			}
+
+			return []byte{}, nil, fmt.Errorf("unauthorized, body: %s", string(bodyBytes))
+		}
+
+		var vErr types.APIError
+		err = resp.Json(&vErr)
+
+		if err != nil {
+			return []byte{}, nil, err
+		}
+
+		return []byte{}, &vErr, nil
+	}
+}
