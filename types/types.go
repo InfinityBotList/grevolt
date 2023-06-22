@@ -8,6 +8,11 @@ type EmojiParent struct {
     ID string      `json:"id"`
 }
 
+// API error, not properly generated
+type APIError struct {
+    Type string     `json:"type"`
+}
+
 // Begin types
 
 

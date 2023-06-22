@@ -9,66 +9,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/infinitybotlist/grevolt/rest/restconfig"
+	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/version"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
-
-type RevoltConfigOpts struct {
-	// The URL of the API
-	APIUrl string
-}
-
-var Config = RevoltConfigOpts{
-	APIUrl: "https://api.revolt.chat",
-}
-
-// Makes a request to the API
-func request(method string, path string, jsonPayload any, headers map[string]string) (*ClientResponse, error) {
-	if method == "" {
-		method = "GET"
-	}
-
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-
-	var body []byte
-	var err error
-	if jsonPayload != nil {
-		body, err = json.Marshal(jsonPayload)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if os.Getenv("DEBUG") == "true" {
-		fmt.Println(method, Config.APIUrl+path, " (reqBody:", len(body), "bytes)")
-	}
-
-	req, err := http.NewRequest(method, Config.APIUrl+path, bytes.NewReader(body))
-
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range headers {
-		req.Header.Add(k, v)
-	}
-
-	req.Header.Add("User-Agent", "grevolt/"+version.Version)
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &ClientResponse{
-		Request:  req,
-		Response: resp,
-	}, nil
-}
 
 // A response from the API
 type ClientResponse struct {
@@ -125,11 +71,64 @@ type ClientRequest struct {
 	path    string
 	json    any
 	headers map[string]string
+	config  *restconfig.RestConfig
+}
+
+// Makes a request to the API
+func (r ClientRequest) request() (*ClientResponse, error) {
+	if r.method == "" {
+		r.method = "GET"
+	}
+
+	if !strings.HasPrefix(r.path, "/") {
+		r.path = "/" + r.path
+	}
+
+	var body []byte
+	var err error
+	if r.json != nil {
+		body, err = json.Marshal(r.json)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	r.config.Logger.Debug(r.method, r.config.APIUrl+r.path, " (reqBody:", len(body), "bytes)")
+
+	req, err := http.NewRequest(r.method, r.config.APIUrl+r.path, bytes.NewReader(body))
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range r.headers {
+		req.Header.Add(k, v)
+	}
+
+	req.Header.Add("User-Agent", "grevolt/"+version.Version)
+	req.Header.Add("Content-Type", "application/json")
+
+	client := http.Client{
+		Timeout: r.config.Timeout,
+	}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ClientResponse{
+		Request:  req,
+		Response: resp,
+	}, nil
 }
 
 // Creates a new request, must be followed by a method call otherwise the request will be invalid
-func NewReq() ClientRequest {
+func NewReq(config *restconfig.RestConfig) ClientRequest {
 	return ClientRequest{
+		config:  config,
 		headers: make(map[string]string),
 	}
 }
@@ -194,30 +193,47 @@ func (r ClientRequest) Json(json any) ClientRequest {
 	return r
 }
 
-// Sets the authorization header
-func (r ClientRequest) Auth(token string) ClientRequest {
-	// Revolt uses x-session-token for auth
-	r.headers["x-session-token"] = token
-	return r
-}
-
 // Sets a header
 func (r ClientRequest) Header(key string, value string) ClientRequest {
 	r.headers[key] = value
 	return r
 }
 
-// Executes the request
-func (r ClientRequest) Do() (*ClientResponse, error) {
-	return request(r.method, r.path, r.json, r.headers)
+func (r ClientRequest) AutoLogger() ClientRequest {
+	w := zapcore.AddSync(os.Stdout)
+
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		w,
+		zap.DebugLevel,
+	)
+
+	r.config.Logger = zap.New(core).Sugar()
+
+	return r
 }
 
-// Executes the request and marshals the response body into the given struct
-//
-// # If the response is ok, vOk will be unmarshalled into
-//
-// If the response is not ok, vErr will be unmarshalled into
-func (r ClientRequest) DoAndMarshal(vOk any, vErr any) (any, error) {
+// Executes the request
+func (r ClientRequest) Do() (*ClientResponse, error) {
+	if r.config.Logger == nil {
+		r.AutoLogger()
+	}
+
+	if r.config.SessionToken != nil {
+		if r.config.SessionToken.Bot {
+			r.headers["x-bot-token"] = r.config.SessionToken.Token
+		} else {
+			r.headers["x-user-token"] = r.config.SessionToken.Token
+		}
+	}
+
+	fmt.Println(r.headers)
+
+	return r.request()
+}
+
+// Executes the request and unmarshals the response body if the response is OK otherwise returns error
+func (r ClientRequest) DoAndMarshal(v any) (*types.APIError, error) {
 	resp, err := r.Do()
 
 	if err != nil {
@@ -225,20 +241,38 @@ func (r ClientRequest) DoAndMarshal(vOk any, vErr any) (any, error) {
 	}
 
 	if resp.Ok() {
-		err = resp.Json(vOk)
+		err = resp.Json(v)
 
 		if err != nil {
 			return nil, err
 		}
 
-		return vOk, nil
+		return nil, nil
 	} else {
-		err = resp.Json(vErr)
+		if resp.Response.StatusCode == 401 {
+			// Try and read body
+			body := resp.Response.Body
+
+			if body == nil {
+				return nil, fmt.Errorf("unauthorized")
+			}
+
+			bodyBytes, err := io.ReadAll(body)
+
+			if err != nil {
+				return nil, fmt.Errorf("unauthorized, could not read body")
+			}
+
+			return nil, fmt.Errorf("unauthorized, body: %s", string(bodyBytes))
+		}
+
+		var vErr types.APIError
+		err = resp.Json(&vErr)
 
 		if err != nil {
 			return nil, err
 		}
 
-		return vErr, fmt.Errorf("error status code %d", resp.Response.StatusCode)
+		return &vErr, nil
 	}
 }
