@@ -15,7 +15,7 @@ var config struct {
 
 func main() {
 	// Open config.yaml
-	f, err := os.Open("config.yaml")
+	f, err := os.Open("../config.yaml")
 
 	if err != nil {
 		panic(err)
