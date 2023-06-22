@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/client/geneva"
@@ -45,6 +46,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	c.Websocket.Timeout = 2 * time.Second
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		c.Websocket.Close()
+	}()
 
 	c.Websocket.Wait()
 }

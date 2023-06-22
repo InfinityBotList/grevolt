@@ -28,12 +28,14 @@ const (
 	NOTIFY_IOpCode       IOpCode = iota
 	AUTHENTICATE_IOpCode IOpCode = iota
 	ERROR_IOpCode        IOpCode = iota
-	RAWMSG_IOpCode       IOpCode = iota
+	FATAL_IOpCode        IOpCode = iota
+	EVENT_IOpCode        IOpCode = iota
 )
 
 type NotifyPayload struct {
-	OpCode IOpCode        // Internal library OpCode
-	Data   map[string]any // Raw data
+	OpCode    IOpCode        // Internal library OpCode
+	Data      map[string]any // Internal Opcode data
+	EventData []byte         // Event data
 }
 
 type GatewayClient struct {
@@ -151,8 +153,7 @@ func (w *GatewayClient) Close() {
 // Wait for the gateway to close
 func (w *GatewayClient) Wait() {
 	for payload := range w.NotifyChannel {
-		if payload.OpCode == KILL_IOpCode {
-			fmt.Println("Recieved KILL_IOpCode, closing connection to gateway")
+		if payload.OpCode == KILL_IOpCode || payload.OpCode == FATAL_IOpCode {
 			break
 		}
 	}
@@ -186,6 +187,87 @@ func (w *GatewayClient) readMessages() {
 		_, message, err := w.WsConn.ReadMessage()
 		w.Logger.Debug(string(message))
 
+		var data struct {
+			Type  string `json:"type"`
+			Error string `json:"error,omitempty"`
+		}
+
+		// If we have a message, try and decode it first, before checking for a close code
+		if len(message) > 0 {
+			switch w.Encoding {
+			case "json":
+				err = json.Unmarshal(message, &data)
+
+				if err != nil {
+					w.Logger.Error("failed to unmarshal message: " + err.Error())
+					continue
+				}
+			case "msgpack":
+				err = msgpack.Unmarshal(message, &data)
+
+				if err != nil {
+					w.Logger.Error("failed to unmarshal message: " + err.Error())
+					continue
+				}
+			}
+
+			// Error handling here, before checking frames, allows for detection of invalid auth credential errors
+			switch data.Type {
+			case "NotFound": // Undocumented, but means that auth credentials are invalid
+				w.Logger.Error("invalid auth credentials")
+				w.NotifyChannel <- &NotifyPayload{
+					OpCode: FATAL_IOpCode,
+					Data: map[string]any{
+						"error": "invalid auth credentials",
+					},
+				}
+			case "LabelMe":
+				w.Logger.Info("received LabelMe")
+				w.NotifyChannel <- &NotifyPayload{
+					OpCode: ERROR_IOpCode,
+					Data: map[string]any{
+						"error": "recieved unknown error: label me",
+					},
+				}
+			case "InternalError":
+				w.Logger.Info("received InternalError")
+				w.NotifyChannel <- &NotifyPayload{
+					OpCode: ERROR_IOpCode,
+					Data: map[string]any{
+						"error": "recieved unknown error: internal error",
+					},
+				}
+			case "InvalidSession":
+				w.Logger.Info("received InvalidSession")
+				w.NotifyChannel <- &NotifyPayload{
+					OpCode: FATAL_IOpCode,
+					Data: map[string]any{
+						"error": "invalid session",
+					},
+				}
+			case "OnboardingNotFinished":
+				w.Logger.Info("received OnboardingNotFinished")
+				w.NotifyChannel <- &NotifyPayload{
+					OpCode: FATAL_IOpCode,
+					Data: map[string]any{
+						"error": "onboarding not finished [OnboardingNotFinished]",
+					},
+				}
+			// TODO: rethink this: ERROR vs NOTIFY
+			case "AlreadyAuthenticated":
+				w.Logger.Info("received AlreadyAuthenticated")
+				w.NotifyChannel <- &NotifyPayload{
+					OpCode: ERROR_IOpCode,
+					Data: map[string]any{
+						"error": "already authenticated [AlreadyAuthenticated]",
+					},
+				}
+			}
+			time.Sleep(1 * time.Second)
+			break
+		}
+
+		// Now we can check error freely as this is a close code
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				w.Logger.Info("error: %v", err)
@@ -205,43 +287,14 @@ func (w *GatewayClient) readMessages() {
 			break
 		}
 
-		switch w.Encoding {
-		case "json":
-			var msg map[string]any
-			err = json.Unmarshal(message, &msg)
-
-			if err != nil {
-				w.Logger.Error("failed to unmarshal json: " + err.Error())
-				continue
-			}
-
-			// Send message to notify channel
-			w.NotifyChannel <- &NotifyPayload{
-				OpCode: NOTIFY_IOpCode,
-				Data:   msg,
-			}
-
-			// Recieved message successfully, extend deadline
-			w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
-		case "msgpack":
-			var msg map[string]any
-
-			// unpack msgpack
-			err = msgpack.Unmarshal(message, &msg)
-
-			if err != nil {
-				w.Logger.Error("failed to unmarshal msgpack: " + err.Error())
-				continue
-			}
-
-			// Send message to notify channel
-			w.NotifyChannel <- &NotifyPayload{
-				OpCode: NOTIFY_IOpCode,
-				Data:   msg,
-			}
-			// Recieved message successfully, extend deadline
-			w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
+		// Send event over notify channel
+		w.NotifyChannel <- &NotifyPayload{
+			OpCode:    EVENT_IOpCode,
+			EventData: message,
 		}
+
+		// Recieved message successfully, extend deadline
+		w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 	}
 }
 
@@ -305,6 +358,8 @@ func (w *GatewayClient) handleNotify() {
 		switch payload.OpCode {
 		case KILL_IOpCode:
 			w.killed = true
+			w.wsOpen = false
+			w.heartbeatId = ""
 			return
 		case RESTART_IOpCode:
 			restarter()
@@ -339,6 +394,15 @@ func (w *GatewayClient) handleNotify() {
 			w.Logger.Error("error from gateway: ", payload)
 			restarter()
 			return
+		case FATAL_IOpCode:
+			w.Logger.Error("fatal error from gateway: ", payload)
+			w.killed = true
+			w.wsOpen = false
+			w.heartbeatId = ""
+			return
+		case EVENT_IOpCode:
+			// TODO: event handling
+			fmt.Println(string(payload.EventData))
 		}
 	}
 
