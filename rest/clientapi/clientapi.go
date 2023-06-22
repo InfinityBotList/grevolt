@@ -326,3 +326,25 @@ func (r ClientRequest) DoAndMarshalBytes() ([]byte, *types.APIError, error) {
 		return []byte{}, &vErr, nil
 	}
 }
+
+// NoContentErr marshals to error if a 204 is not returned, returning nil if a 204 is returned
+func (r ClientRequest) NoContentErr() (*types.APIError, error) {
+	resp, err := r.Do()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Response.StatusCode != 204 {
+		var vErr types.APIError
+		err = resp.Json(&vErr)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return &vErr, nil
+	} else {
+		return nil, nil
+	}
+}

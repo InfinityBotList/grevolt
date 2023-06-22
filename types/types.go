@@ -55,6 +55,13 @@ const (
 	VOICE_ChannelType ChannelType = "Voice"
 )
 
+type DataInviteBot struct {
+	// Server Id
+	Server string `json:"server,omitempty"`
+	// Group id
+	Group string `json:"group,omitempty"`
+}
+
 // Begin types
 
 type AccountInfo struct {

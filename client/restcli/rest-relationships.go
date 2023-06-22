@@ -40,7 +40,7 @@ func (c *RestClient) UnblockUser(target string) (*types.User, *types.APIError, e
 	return u, apiErr, err
 }
 
-// Block another user by their id.
+// Send a friend request to another user.
 func (c *RestClient) SendFriendRequest(d *types.DataSendFriendRequest) (*types.User, *types.APIError, error) {
 	var u *types.User
 	apiErr, err := clientapi.NewReq(&c.Config).Post("users/friend").Json(d).DoAndMarshal(&u)
