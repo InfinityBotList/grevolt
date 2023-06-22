@@ -32,6 +32,16 @@ const (
 	EVENT_IOpCode        IOpCode = iota
 )
 
+type WsState int
+
+const (
+	WsStateClosed     WsState = iota
+	WsStateOpening    WsState = iota
+	WsStateOpen       WsState = iota
+	WsStateClosing    WsState = iota
+	WsStateRestarting WsState = iota
+)
+
 type NotifyPayload struct {
 	OpCode    IOpCode        // Internal library OpCode
 	Data      map[string]any // Internal Opcode data
@@ -74,20 +84,11 @@ type GatewayClient struct {
 	// Websocket event handlers
 	Handlers map[string]func(eventData map[string]any)
 
-	// This channel is fired when Wait() should return
-	exitChan chan bool
+	// Websocket state
+	State WsState
 
-	// Whether the WS is open or not
-	wsOpen bool
-
-	// Whether or not the websocket is currently being openned
-	wsOpenning bool
-
-	// Whether the WS has been killed or not
-	killed bool
-
-	// Whether the WS is restarting
-	restarting bool
+	// This channel is fired when status updates are received
+	StatusChannel chan bool
 
 	// unique id describing the heartbeat
 	heartbeatId string
@@ -113,14 +114,14 @@ func (w *GatewayClient) Open() error {
 	w.Lock()
 	defer w.Unlock()
 
-	if w.wsOpen || w.wsOpenning {
+	if w.State == WsStateOpen || w.State == WsStateOpening {
 		return ErrWSAlreadyOpen
 	}
 
 	w.Logger.Info("waiting for old connections (if any) to close")
 	w.wg.Wait()
 
-	w.wsOpenning = true
+	w.State = WsStateOpening
 
 	w.Logger.Info("opening connection to gateway")
 
@@ -137,15 +138,13 @@ func (w *GatewayClient) Open() error {
 	}
 
 	// Reset connection
-	w.killed = false
 	w.NotifyChannel = make(chan *NotifyPayload)
 
 	if !w.wsInitOnce {
-		w.exitChan = make(chan bool)
+		w.StatusChannel = make(chan bool)
 	}
 
 	w.heartbeatId = ""
-	w.wsOpen = false
 	w.WsConn = nil
 
 	if w.Encoding == "" {
@@ -175,20 +174,30 @@ func (w *GatewayClient) Open() error {
 		return errors.New("failed to connect to gateway: " + err.Error())
 	}
 
+	w.WsConn.SetCloseHandler(func(code int, text string) error {
+		w.State = WsStateClosed
+		w.Logger.Info("websocket closed: ", code, text)
+		w.NotifyChannel <- &NotifyPayload{
+			OpCode: ERROR_IOpCode,
+		}
+
+		return nil
+	})
+
+	w.State = WsStateOpen
+	w.wsInitOnce = true
+
 	go w.handleNotify()
 	time.Sleep(1 * time.Second)
 	go w.readMessages()
 
 	w.Logger.Info("opened connection to gateway")
 
-	w.wsOpen = true
-	w.wsOpenning = false
-	w.wsInitOnce = true
 	return nil
 }
 
 func (w *GatewayClient) Close() {
-	close(w.exitChan)
+	w.State = WsStateClosing
 	w.NotifyChannel <- &NotifyPayload{
 		OpCode: KILL_IOpCode,
 	}
@@ -196,7 +205,7 @@ func (w *GatewayClient) Close() {
 
 // Wait for the gateway to close
 func (w *GatewayClient) Wait() {
-	for payload := range w.exitChan {
+	for payload := range w.StatusChannel {
 		w.Logger.Info("received exit payload: ", payload)
 		if payload {
 			// Close the websocket
@@ -207,7 +216,7 @@ func (w *GatewayClient) Wait() {
 
 // Waits for the gateway to close, then sends a notification to the notify channel
 func (w *GatewayClient) OnDone(notify chan bool) {
-	<-w.exitChan
+	<-w.StatusChannel
 	notify <- true
 }
 
@@ -233,23 +242,7 @@ func (w *GatewayClient) readMessages() {
 		OpCode: AUTHENTICATE_IOpCode,
 	}
 
-	w.WsConn.SetCloseHandler(func(code int, text string) error {
-		w.wsOpen = false
-		w.Logger.Info("websocket closed: ", code, text)
-		w.NotifyChannel <- &NotifyPayload{
-			OpCode: ERROR_IOpCode,
-		}
-
-		return nil
-	})
-
 	for {
-		// Check that connection isn't closed
-		if w.killed {
-			w.Logger.Info("readMessages() killed")
-			return
-		}
-
 		_, message, err := w.WsConn.ReadMessage()
 
 		var data internalMessage
@@ -352,17 +345,16 @@ func (w *GatewayClient) readMessages() {
 
 		// Now we can check error freely as this is a close code
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				w.Logger.Info("error: %v", err)
-			}
-
 			// Check if its a "use of closed network connection" error
 			//
 			// These are not fatal and should definitely not be spawning a notify payload
 			if strings.Contains(err.Error(), "use of closed network connection") {
 				w.Logger.Info("websocket closed, exiting readMessages()")
-				w.wsOpen = false
 				return
+			}
+
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				w.Logger.Info("error: %v", err)
 			}
 
 			// Send whatever we have to the notify channel
@@ -375,7 +367,6 @@ func (w *GatewayClient) readMessages() {
 				},
 			}
 
-			w.wsOpen = false
 			return
 		}
 
@@ -433,20 +424,19 @@ func (w *GatewayClient) Send(data map[string]any) error {
 
 func (w *GatewayClient) handleNotify() {
 	restarter := func() {
-		w.Logger.Info("restarting connection to gateway")
-
-		// If killed, don't restart
-		if w.killed {
+		// If closed, don't restart
+		if w.State == WsStateClosed {
 			w.Logger.Info("not restarting connection to gateway because it was killed")
 			return
 		}
+
+		w.Logger.Info("restarting connection to gateway")
 
 		// Send restart opcode
 		w.Logger.Info("sending restart opcode")
 		w.WsConn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, "closeWsConn"), time.Now().Add(w.Deadline))
 		w.WsConn.Close()
-		w.restarting = true
-		w.wsOpen = false
+		w.State = WsStateRestarting
 
 		// Avoid leaking channels
 		close(w.NotifyChannel)
@@ -465,12 +455,11 @@ func (w *GatewayClient) handleNotify() {
 		switch payload.OpCode {
 		case KILL_IOpCode:
 			w.Logger.Info("killing connection to gateway")
-			w.killed = true
-			w.wsOpen = false
+			w.State = WsStateClosed
 			w.heartbeatId = ""
 			w.WsConn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, "closeWsConn"), time.Now().Add(w.Deadline))
 			w.WsConn.Close()
-			w.exitChan <- true
+			w.StatusChannel <- true
 			return
 		case RESTART_IOpCode:
 			restarter()
@@ -488,8 +477,7 @@ func (w *GatewayClient) handleNotify() {
 			return
 		case FATAL_IOpCode:
 			w.Logger.Error("fatal error from gateway: ", payload)
-			w.killed = true
-			w.wsOpen = false
+			w.State = WsStateClosed
 			w.heartbeatId = ""
 			return
 		case EVENT_IOpCode:
@@ -498,7 +486,7 @@ func (w *GatewayClient) handleNotify() {
 		}
 	}
 
-	if w.wsOpen {
+	if w.State == WsStateOpen {
 		restarter()
 	}
 }
@@ -516,7 +504,7 @@ func (w *GatewayClient) heartbeat(hbId string) {
 			return // Not the current heartbeat ws
 		}
 
-		if !w.wsOpen || w.killed {
+		if w.State != WsStateOpen {
 			continue
 		}
 

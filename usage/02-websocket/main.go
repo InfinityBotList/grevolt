@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/client/geneva"
@@ -41,11 +42,13 @@ func main() {
 
 	fmt.Println("Done")
 
-	test2(c, 1)
-
-	/*for i := 0; i < 1; i++ {
+	for i := 0; i < 1; i++ {
 		test1(c, i)
-	}*/
+	}
+
+	//test2(c, 1)
+
+	/**/
 }
 
 func test1(c *client.Client, i int) {
@@ -55,14 +58,14 @@ func test1(c *client.Client, i int) {
 		panic(err)
 	}
 
-	/*go func() {
+	go func() {
 		// Wait for 10 seconds
 		time.Sleep(10 * time.Second)
 
 		// Close the client
 		fmt.Println("Closing", i)
 		c.Websocket.Close()
-	}()*/
+	}()
 
 	c.Websocket.Wait()
 }
@@ -91,6 +94,5 @@ func test2(c *client.Client, i int) {
 			time.Sleep(10 * time.Second)
 		}
 	}() */
-
 	c.Websocket.Wait()
 }
