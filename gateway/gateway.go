@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 
@@ -25,7 +26,6 @@ type IOpCode int
 const (
 	KILL_IOpCode         IOpCode = iota
 	RESTART_IOpCode      IOpCode = iota
-	NOTIFY_IOpCode       IOpCode = iota
 	AUTHENTICATE_IOpCode IOpCode = iota
 	ERROR_IOpCode        IOpCode = iota
 	FATAL_IOpCode        IOpCode = iota
@@ -154,7 +154,9 @@ func (w *GatewayClient) Close() {
 func (w *GatewayClient) Wait() {
 	for payload := range w.NotifyChannel {
 		if payload.OpCode == KILL_IOpCode || payload.OpCode == FATAL_IOpCode {
-			break
+			// Close the websocket
+			os.Exit(1)
+			return
 		}
 	}
 }
@@ -185,7 +187,6 @@ func (w *GatewayClient) readMessages() {
 
 	for {
 		_, message, err := w.WsConn.ReadMessage()
-		w.Logger.Debug(string(message))
 
 		var data struct {
 			Type  string `json:"type"`
@@ -212,7 +213,12 @@ func (w *GatewayClient) readMessages() {
 			}
 
 			// Error handling here, before checking frames, allows for detection of invalid auth credential errors
+			var err bool = true
 			switch data.Type {
+			case "Pong":
+				w.Logger.Info("recieved pong from gateway")
+				w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
+				err = false
 			case "NotFound": // Undocumented, but means that auth credentials are invalid
 				w.Logger.Error("invalid auth credentials")
 				w.NotifyChannel <- &NotifyPayload{
@@ -262,9 +268,14 @@ func (w *GatewayClient) readMessages() {
 						"error": "already authenticated [AlreadyAuthenticated]",
 					},
 				}
+			default: // No error, continue
+				err = false
 			}
-			time.Sleep(1 * time.Second)
-			break
+
+			if err {
+				time.Sleep(1 * time.Second)
+				break
+			}
 		}
 
 		// Now we can check error freely as this is a close code
@@ -357,6 +368,7 @@ func (w *GatewayClient) handleNotify() {
 	for payload := range w.NotifyChannel {
 		switch payload.OpCode {
 		case KILL_IOpCode:
+			w.Logger.Info("killing connection to gateway")
 			w.killed = true
 			w.wsOpen = false
 			w.heartbeatId = ""
@@ -364,20 +376,6 @@ func (w *GatewayClient) handleNotify() {
 		case RESTART_IOpCode:
 			restarter()
 			return
-		case NOTIFY_IOpCode:
-			w.Logger.Info(payload.Data)
-
-			// Check type
-			if v, ok := payload.Data["type"]; ok {
-				// Check if type is string
-				if t, ok := v.(string); ok {
-					switch t {
-					case "Pong":
-						w.Logger.Info("recieved pong from gateway")
-						w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
-					}
-				}
-			}
 		case AUTHENTICATE_IOpCode:
 			// Send authenticate command frame
 			w.Logger.Info("sending authenticate command frame")
