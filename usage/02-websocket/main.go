@@ -42,7 +42,7 @@ func main() {
 
 	fmt.Println("Done")
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 2; i++ {
 		test1(c, i)
 	}
 
