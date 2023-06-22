@@ -2,5 +2,6 @@ tmp
 usage/**/config.yaml
 usage/**/usage
 usage/**/tester
+usage/02-websocket/02-websocket
 test.yaml
 test.yaml.sample

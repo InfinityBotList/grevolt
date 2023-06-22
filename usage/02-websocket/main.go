@@ -39,14 +39,58 @@ func main() {
 		Token: config.SessionTokenUser,
 	})
 
-	// Print the test no and name in bold
-	err = c.Open()
+	fmt.Println("Done")
+
+	test2(c, 1)
+
+	/*for i := 0; i < 1; i++ {
+		test1(c, i)
+	}*/
+}
+
+func test1(c *client.Client, i int) {
+	err := c.Open()
 
 	if err != nil {
 		panic(err)
 	}
 
-	c.Websocket.Wait()
+	/*go func() {
+		// Wait for 10 seconds
+		time.Sleep(10 * time.Second)
 
-	fmt.Println("Done")
+		// Close the client
+		fmt.Println("Closing", i)
+		c.Websocket.Close()
+	}()*/
+
+	c.Websocket.Wait()
+}
+
+func test2(c *client.Client, i int) {
+	err := c.Open()
+
+	if err != nil {
+		panic(err)
+	}
+
+	/* go func() {
+		// Wait for 10 seconds
+		time.Sleep(10 * time.Second)
+
+		// Close the client
+		fmt.Println("Closing", i)
+
+		// Send restart payload
+		for {
+			c.Websocket.NotifyChannel <- &gateway.NotifyPayload{
+				OpCode: gateway.RESTART_IOpCode,
+				Data:   map[string]any{},
+			}
+
+			time.Sleep(10 * time.Second)
+		}
+	}() */
+
+	c.Websocket.Wait()
 }
