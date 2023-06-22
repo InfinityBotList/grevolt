@@ -80,6 +80,7 @@ remove_struct AllOfMessageWebhook # We have MessageWebhook which is the same thi
 remove_replace AllOfUserStatusPresence string
 remove_struct AllOfUserStatus # UserStatus is way better than this
 remove_struct AllOfUserProfile # UserProfile is way better than this
+remove_replace AllOfUserRelationship string
 
 # Replace SnapshotContent with *Object
 replace_struct SnapshotContent Object

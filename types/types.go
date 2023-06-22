@@ -9,8 +9,21 @@ type EmojiParent struct {
 }
 
 // API error, not properly generated
-type APIError struct {
-    Type string     `json:"type"`
+type APIError map[string]any
+
+func (e APIError) Type() string {
+    typ, ok := e["type"]
+
+    if !ok {
+        return "Unknown"
+    }
+
+    // Check if typ is a string
+    if _, ok := typ.(string); !ok {
+        return "Unknown"
+    }
+
+    return typ.(string)
 }
 
 // Begin types
@@ -472,8 +485,6 @@ type UserBot struct {
 // Background visible on user's profile
 
 // Current session user's relationship with this user
-type UserRelationship struct {
-}
 
 // User's current status
 
@@ -1716,7 +1727,7 @@ type User struct {
 	// Bot information
 	Bot *UserBot `json:"bot,omitempty"`
 	// Current session user's relationship with this user
-	Relationship *UserRelationship `json:"relationship,omitempty"`
+	Relationship string `json:"relationship,omitempty"`
 	// Whether this user is currently online
 	Online bool `json:"online,omitempty"`
 }

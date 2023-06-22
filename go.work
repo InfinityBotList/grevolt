@@ -1,4 +1,4 @@
 go 1.20
 
 use . 
-use tester
+use usage/01-fetchself

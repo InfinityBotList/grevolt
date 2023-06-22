@@ -8,6 +8,8 @@ To generate/update types for Revolt API, use SwaggerHub (or ``swagger-codegen``)
 
 See ``src-openapi/parse.sh`` for an script that will automate all of this for you with patching as well
 
+Run ``go test -v ./...`` to test stuff
+
 # TODO
 - CI that checks all functions based on openapi schema
 

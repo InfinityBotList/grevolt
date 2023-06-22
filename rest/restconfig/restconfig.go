@@ -4,6 +4,7 @@ package restconfig
 import (
 	"time"
 
+	"github.com/infinitybotlist/grevolt/client/geneva"
 	"go.uber.org/zap"
 )
 
@@ -15,14 +16,7 @@ type RestConfig struct {
 	// Logger to use, will be autofilled if not provided
 	Logger *zap.SugaredLogger
 	// Session token for requests
-	SessionToken *Token
-}
-
-type Token struct {
-	// Whether the token is a bot token
-	Bot bool
-	// The session token
-	Token string
+	SessionToken *geneva.Token
 }
 
 // DefaultRestConfig is the default configuration for the client

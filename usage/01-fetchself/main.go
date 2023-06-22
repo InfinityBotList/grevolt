@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/infinitybotlist/grevolt/client"
-	"github.com/infinitybotlist/grevolt/rest/restconfig"
+	"github.com/infinitybotlist/grevolt/client/geneva"
 	"gopkg.in/yaml.v3"
 )
 
@@ -32,17 +32,18 @@ func main() {
 	c := client.New()
 
 	// Authorize the client
-	c.Authorize(&restconfig.Token{
+	c.Authorize(&geneva.Token{
 		Bot:   true,
 		Token: config.SessionTokenBot,
 	})
 
-	// Fetch user info
+	// Print the test no and name in bold
+
 	u, apiErr, err := c.Rest.FetchSelf()
-
-	if err != nil {
-		fmt.Println("API Error:", apiErr, "\nError:", err)
-	}
-
-	fmt.Println("User:", u)
+	fmt.Println("User:", u, "\nAPI Error:", apiErr, "\nError:", err, "UserBot info:", func() any {
+		if u != nil {
+			return u.Bot
+		}
+		return "<nil>"
+	}())
 }

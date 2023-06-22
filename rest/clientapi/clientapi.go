@@ -202,10 +202,15 @@ func (r ClientRequest) Header(key string, value string) ClientRequest {
 func (r ClientRequest) AutoLogger() ClientRequest {
 	w := zapcore.AddSync(os.Stdout)
 
+	var level = zap.InfoLevel
+	if os.Getenv("DEBUG") == "true" {
+		level = zap.DebugLevel
+	}
+
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
 		w,
-		zap.DebugLevel,
+		level,
 	)
 
 	r.config.Logger = zap.New(core).Sugar()
@@ -223,11 +228,11 @@ func (r ClientRequest) Do() (*ClientResponse, error) {
 		if r.config.SessionToken.Bot {
 			r.headers["x-bot-token"] = r.config.SessionToken.Token
 		} else {
-			r.headers["x-user-token"] = r.config.SessionToken.Token
+			r.headers["x-session-token"] = r.config.SessionToken.Token
 		}
 	}
 
-	fmt.Println(r.headers)
+	r.config.Logger.Debug(r.headers)
 
 	return r.request()
 }

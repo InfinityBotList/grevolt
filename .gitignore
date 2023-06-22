@@ -1,3 +1,6 @@
 tmp
-tester/config.yaml
-tester/tester
+usage/**/config.yaml
+usage/**/usage
+usage/**/tester
+test.yaml
+test.yaml.sample

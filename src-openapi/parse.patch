@@ -9,8 +9,21 @@ type EmojiParent struct {
 }
 
 // API error, not properly generated
-type APIError struct {
-    Type string     `json:"type"`
+type APIError map[string]any
+
+func (e APIError) Type() string {
+    typ, ok := e["type"]
+
+    if !ok {
+        return "Unknown"
+    }
+
+    // Check if typ is a string
+    if _, ok := typ.(string); !ok {
+        return "Unknown"
+    }
+
+    return typ.(string)
 }
 
 // Begin types

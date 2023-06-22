@@ -1,4 +1,4 @@
-package client
+package restcli
 
 import (
 	"github.com/infinitybotlist/grevolt/rest/clientapi"

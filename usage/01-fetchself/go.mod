@@ -1,4 +1,4 @@
-module tester
+module usage
 
 go 1.20
 
