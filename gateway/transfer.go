@@ -10,7 +10,7 @@ import (
 	"github.com/vmihailenco/msgpack/v5"
 )
 
-func (w *GatewayClient) Recieve(data []byte, dst any) error {
+func (w *GatewayClient) Decode(data []byte, dst any) error {
 	switch w.Encoding {
 	case "json":
 		return json.Unmarshal(data, &dst)

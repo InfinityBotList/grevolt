@@ -252,7 +252,7 @@ func (w *GatewayClient) readMessages() {
 
 		// If we have a message, try and decode it first, before checking for a close code
 		if len(message) > 0 {
-			err = w.Recieve(message, &data)
+			err = w.Decode(message, &data)
 
 			if err != nil {
 				w.Logger.Error("failed to unmarshal message: " + err.Error())

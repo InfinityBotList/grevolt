@@ -11,7 +11,7 @@ func createEvent[T events.EventInterface](
 ) error {
 	var evtMarshalled *T
 
-	err := w.Recieve(data, &evtMarshalled)
+	err := w.Decode(data, &evtMarshalled)
 
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func createEvent[T events.EventInterface](
 func (w *GatewayClient) HandleBulk(event []byte) error {
 	var bulkData *events.Bulk
 
-	err := w.Recieve(event, &bulkData)
+	err := w.Decode(event, &bulkData)
 
 	if err != nil {
 		return err
