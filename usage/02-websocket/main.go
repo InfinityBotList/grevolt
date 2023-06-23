@@ -73,6 +73,10 @@ func main() {
 		fmt.Println("Ready:", e.Users[0])
 	}
 
+	/*c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
+		fmt.Println(string(data))
+	}*/
+
 	for i := 0; i < 2; i++ {
 		test1(c, i)
 	}
