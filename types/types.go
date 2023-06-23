@@ -122,7 +122,7 @@ type CreateServerResponseServer struct {
 	// Categories for this server
 	Categories []Category `json:"categories,omitempty"`
 	// Configuration for sending system event messages
-	SystemMessages *Object `json:"system_messages,omitempty"`
+	SystemMessages *ServerSystemMessages `json:"system_messages,omitempty"`
 	// Roles for this server
 	Roles map[string]Role `json:"roles,omitempty"`
 	// Default set of server and channel permissions
@@ -154,16 +154,6 @@ type DataEditReportStatus struct {
 }
 
 // System message configuration
-type DataEditServerSystemMessages struct {
-	// ID of channel to send user join messages in
-	UserJoined string `json:"user_joined,omitempty"`
-	// ID of channel to send user left messages in
-	UserLeft string `json:"user_left,omitempty"`
-	// ID of channel to send user kicked messages in
-	UserKicked string `json:"user_kicked,omitempty"`
-	// ID of channel to send user banned messages in
-	UserBanned string `json:"user_banned,omitempty"`
-}
 
 // New user profile data  This is applied as a partial.
 type DataEditUserProfile struct {
@@ -482,7 +472,7 @@ type SnapshotWithContextServer struct {
 	// Categories for this server
 	Categories []Category `json:"categories,omitempty"`
 	// Configuration for sending system event messages
-	SystemMessages *Object `json:"system_messages,omitempty"`
+	SystemMessages *ServerSystemMessages `json:"system_messages,omitempty"`
 	// Roles for this server
 	Roles map[string]Role `json:"roles,omitempty"`
 	// Default set of server and channel permissions
@@ -864,7 +854,7 @@ type DataEditServer struct {
 	// Category structure for server
 	Categories []Category `json:"categories,omitempty"`
 	// System message configuration
-	SystemMessages *DataEditServerSystemMessages `json:"system_messages,omitempty"`
+	SystemMessages *ServerSystemMessages `json:"system_messages,omitempty"`
 	// Bitfield of server flags
 	Flags int64 `json:"flags,omitempty"`
 	// Whether this server is public and should show up on [Revolt Discover](https://rvlt.gg)
