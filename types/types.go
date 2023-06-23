@@ -300,8 +300,6 @@ type MemberTimeout struct {
 }
 
 // Time at which this message was last edited
-type MessageEdited struct {
-}
 
 // Information about how this message should be interacted with
 type MessageInteractions struct {
@@ -1221,7 +1219,7 @@ type Message struct {
 	// Array of attachments
 	Attachments []*File `json:"attachments,omitempty"`
 	// Time at which this message was last edited
-	Edited *MessageEdited `json:"edited,omitempty"`
+	Edited string `json:"edited,omitempty"`
 	// Attached embeds to this message
 	Embeds []Embed `json:"embeds,omitempty"`
 	// Array of user ids mentioned in this message

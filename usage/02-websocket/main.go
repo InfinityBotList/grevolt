@@ -109,7 +109,29 @@ func main() {
 	}
 
 	c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
-		fmt.Println(string(data))
+		if os.Getenv("DEBUG") == "true" {
+			fmt.Println(string(data))
+		}
+	}
+
+	c.Websocket.EventHandlers.Message = func(w *gateway.GatewayClient, e *events.Message) {
+		fmt.Println("Message:", e.Content, e.Author)
+	}
+
+	c.Websocket.EventHandlers.MessageUpdate = func(w *gateway.GatewayClient, e *events.MessageUpdate) {
+		fmt.Println("MessageUpdate:", e, e.Data, e.Id, e.ChannelId, e.Data.Content, e.Data.Edited)
+	}
+
+	c.Websocket.EventHandlers.MessageDelete = func(w *gateway.GatewayClient, e *events.MessageDelete) {
+		fmt.Println("MessageDelete:", e, e.Id, e.ChannelId)
+	}
+
+	c.Websocket.EventHandlers.MessageReact = func(w *gateway.GatewayClient, e *events.MessageReact) {
+		fmt.Println("MessageReact:", e, e.ChannelId, e.Id, e.UserId, e.EmojiId)
+	}
+
+	c.Websocket.EventHandlers.MessageUnreact = func(w *gateway.GatewayClient, e *events.MessageUnreact) {
+		fmt.Println("MessageUnreact:", e, e.ChannelId, e.Id, e.UserId, e.EmojiId)
 	}
 
 	for i := 0; i < 2; i++ {
@@ -141,8 +163,8 @@ func test1(c *client.Client, i int) {
 		time.Sleep(30 * time.Second)
 
 		// Close the client
-		fmt.Println("Closing", i)
-		c.Websocket.Close()
+		//fmt.Println("Closing", i)
+		//c.Websocket.Close()
 	}()
 
 	c.Websocket.Wait()
