@@ -35,6 +35,10 @@ remove_replace() {
     remove_struct $1
 }
 
+personalize() {
+  sed -i '' "s/$1 \*Object/$1 \*$2/g" types/types.go
+}
+
 # Shorthand for remove_replace ABC File
 is_file() {
     remove_replace $1 File
@@ -84,6 +88,8 @@ remove_struct Channel # Its empty, needs to be patched
 remove_replace AllOfUserRelationship string
 remove_replace AllOfDataEditUserStatus UserStatus
 remove_replace AllOfDataEditServerSystemMessages ServerSystemMessages
+remove_replace AllOfNewRoleResponseRole Role
+remove_replace AllOfRevoltConfigFeatures RevoltFeatures
 
 # Replace SnapshotContent with *Object
 replace_struct SnapshotContent Object
@@ -105,8 +111,16 @@ sed -i '' 's/Presence string/Presence Presence/g' types/types.go
 sed -i '' 's/type Presence Presence/type Presence string/g' types/types.go
 
 # Fix SystemMessages *Object -> SystemMessages *ServerSystemMessages
-sed -i '' 's/SystemMessages \*Object/SystemMessages \*ServerSystemMessages/g' types/types.go
-sed -i '' 's/SystemMessages \*Object/SystemMessages \*ServerSystemMessages/g' types/types.go
+personalize SystemMessages ServerSystemMessages
+
+# More minor tweaks
+personalize Avatar File
+personalize Status UserStatus
+personalize Icon File
+personalize Banner File
+personalize Profile UserProfile
+personalize Bot BotInformation
+personalize Relationship RelationshipStatus
 
 # Finalize
 cp src-openapi/parse.patch tmp/parse.patch

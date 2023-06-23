@@ -128,9 +128,9 @@ type CreateServerResponseServer struct {
 	// Default set of server and channel permissions
 	DefaultPermissions int64 `json:"default_permissions"`
 	// Icon attachment
-	Icon *Object `json:"icon,omitempty"`
+	Icon *File `json:"icon,omitempty"`
 	// Banner attachment
-	Banner *Object `json:"banner,omitempty"`
+	Banner *File `json:"banner,omitempty"`
 	// Bitfield of server flags
 	Flags int64 `json:"flags,omitempty"`
 	// Whether this server is flagged as not safe for work
@@ -244,23 +244,23 @@ type FetchBotResponseUser struct {
 	// Display name
 	DisplayName string `json:"display_name,omitempty"`
 	// Avatar attachment
-	Avatar *Object `json:"avatar,omitempty"`
+	Avatar *File `json:"avatar,omitempty"`
 	// Relationships with other users
 	Relations []Relationship `json:"relations,omitempty"`
 	// Bitfield of user badges
 	Badges int64 `json:"badges,omitempty"`
 	// User's current status
-	Status *Object `json:"status,omitempty"`
+	Status *UserStatus `json:"status,omitempty"`
 	// User's profile page
-	Profile *Object `json:"profile,omitempty"`
+	Profile *UserProfile `json:"profile,omitempty"`
 	// Enum of user flags
 	Flags int64 `json:"flags,omitempty"`
 	// Whether this user is privileged
 	Privileged bool `json:"privileged,omitempty"`
 	// Bot information
-	Bot *Object `json:"bot,omitempty"`
+	Bot *BotInformation `json:"bot,omitempty"`
 	// Current session user's relationship with this user
-	Relationship *Object `json:"relationship,omitempty"`
+	Relationship *RelationshipStatus `json:"relationship,omitempty"`
 	// Whether this user is currently online
 	Online bool `json:"online,omitempty"`
 }
@@ -330,18 +330,6 @@ type MessageSystem struct {
 // The webhook that sent this message
 
 // New role
-type NewRoleResponseRole struct {
-	// Role name
-	Name string `json:"name"`
-	// Permissions available to this role
-	Permissions *Object `json:"permissions"`
-	// Colour used for this role  This can be any valid CSS colour
-	Colour string `json:"colour,omitempty"`
-	// Whether this role should be shown separately on the member sidebar
-	Hoist bool `json:"hoist,omitempty"`
-	// Ranking of this role
-	Rank int64 `json:"rank,omitempty"`
-}
 
 // Message sort direction  By default, it will be sorted by latest.
 type OptionsMessageSearchSort struct {
@@ -374,20 +362,6 @@ type RevoltConfigBuild struct {
 }
 
 // Features enabled on this Revolt node
-type RevoltConfigFeatures struct {
-	// hCaptcha configuration
-	Captcha *Object `json:"captcha"`
-	// Whether email verification is enabled
-	Email bool `json:"email"`
-	// Whether this server is invite only
-	InviteOnly bool `json:"invite_only"`
-	// File server service configuration
-	Autumn *Object `json:"autumn"`
-	// Proxy service configuration
-	January *Object `json:"january"`
-	// Voice server configuration
-	Voso *Object `json:"voso"`
-}
 
 // File server service configuration
 type RevoltFeaturesAutumn struct {
@@ -478,9 +452,9 @@ type SnapshotWithContextServer struct {
 	// Default set of server and channel permissions
 	DefaultPermissions int64 `json:"default_permissions"`
 	// Icon attachment
-	Icon *Object `json:"icon,omitempty"`
+	Icon *File `json:"icon,omitempty"`
 	// Banner attachment
-	Banner *Object `json:"banner,omitempty"`
+	Banner *File `json:"banner,omitempty"`
 	// Bitfield of server flags
 	Flags int64 `json:"flags,omitempty"`
 	// Whether this server is flagged as not safe for work
@@ -1344,7 +1318,7 @@ type NewRoleResponse struct {
 	// Id of the role
 	Id string `json:"id"`
 	// New role
-	Role *NewRoleResponseRole `json:"role"`
+	Role *Role `json:"role"`
 }
 
 type OneOfReport struct {
@@ -1542,7 +1516,7 @@ type RevoltConfig struct {
 	// Revolt API Version
 	Revolt string `json:"revolt"`
 	// Features enabled on this Revolt node
-	Features *RevoltConfigFeatures `json:"features"`
+	Features *RevoltFeatures `json:"features"`
 	// WebSocket URL
 	Ws string `json:"ws"`
 	// URL pointing to the client serving this node
