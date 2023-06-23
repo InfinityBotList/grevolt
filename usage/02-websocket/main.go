@@ -7,7 +7,9 @@ import (
 
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/types"
+	"github.com/infinitybotlist/grevolt/types/events"
 	"gopkg.in/yaml.v3"
 )
 
@@ -64,6 +66,11 @@ func main() {
 
 	if err != nil {
 		panic(err)
+	}
+
+	// Register ready event
+	c.Websocket.EventHandlers.Ready = func(w *gateway.GatewayClient, e *events.Ready) {
+		fmt.Println("Ready:", e.Users[0])
 	}
 
 	for i := 0; i < 2; i++ {

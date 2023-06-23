@@ -90,6 +90,7 @@ remove_replace AllOfDataEditUserStatus UserStatus
 remove_replace AllOfDataEditServerSystemMessages ServerSystemMessages
 remove_replace AllOfNewRoleResponseRole Role
 remove_replace AllOfRevoltConfigFeatures RevoltFeatures
+remove_replace AllOfMemberJoinedAt string
 
 # Replace SnapshotContent with *Object
 replace_struct SnapshotContent Object

@@ -41,10 +41,15 @@ const (
 	WsStateRestarting WsState = iota
 )
 
+type NotifyEvent struct {
+	Data []byte // Event data
+	Type string // Event type
+}
+
 type NotifyPayload struct {
-	OpCode    IOpCode        // Internal library OpCode
-	Data      map[string]any // Internal Opcode data
-	EventData []byte         // Event data
+	OpCode IOpCode        // Internal library OpCode
+	Data   map[string]any // Internal Opcode data
+	Event  NotifyEvent    // Event data, only applicable to EVENT_IOpCode
 }
 
 type GatewayClient struct {
@@ -89,6 +94,9 @@ type GatewayClient struct {
 
 	// This channel is fired when status updates are received
 	StatusChannel chan bool
+
+	// Event handlers
+	EventHandlers EventHandlers
 
 	// unique id describing the heartbeat
 	heartbeatId string
@@ -249,24 +257,12 @@ func (w *GatewayClient) readMessages() {
 
 		// If we have a message, try and decode it first, before checking for a close code
 		if len(message) > 0 {
-			switch w.Encoding {
-			case "json":
-				err = json.Unmarshal(message, &data)
+			err = w.Recieve(message, &data)
 
-				if err != nil {
-					w.Logger.Error("failed to unmarshal message: " + err.Error())
-					data = internalMessage{
-						Type: "InternalError",
-					}
-				}
-			case "msgpack":
-				err = msgpack.Unmarshal(message, &data)
-
-				if err != nil {
-					w.Logger.Error("failed to unmarshal message: " + err.Error())
-					data = internalMessage{
-						Type: "InternalError",
-					}
+			if err != nil {
+				w.Logger.Error("failed to unmarshal message: " + err.Error())
+				data = internalMessage{
+					Type: "InternalError",
 				}
 			}
 
@@ -370,10 +366,23 @@ func (w *GatewayClient) readMessages() {
 			return
 		}
 
+		if len(message) == 0 {
+			w.Logger.Warn("recieved empty message")
+			continue
+		}
+
+		if data.Type == "" {
+			w.Logger.Warn("recieved message with empty type")
+			continue
+		}
+
 		// Send event over notify channel
 		w.NotifyChannel <- &NotifyPayload{
-			OpCode:    EVENT_IOpCode,
-			EventData: message,
+			OpCode: EVENT_IOpCode,
+			Event: NotifyEvent{
+				Data: message,
+				Type: data.Type,
+			},
 		}
 
 		// Recieved message successfully, extend deadline
@@ -487,7 +496,7 @@ func (w *GatewayClient) handleNotify() {
 			w.heartbeatId = ""
 			return
 		case EVENT_IOpCode:
-			go w.HandleEvent(payload.EventData)
+			go w.handleEvent(payload.Event.Data, payload.Event.Type)
 		}
 	}
 

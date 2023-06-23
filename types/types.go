@@ -28,21 +28,21 @@ func (e APIError) Type() string {
 
 // Channel struct.
 type Channel struct {
-	Id                 string         `json:"_id,omitempty"`
-	ChannelType        ChannelType    `json:"channel_type,omitempty"`
-	UserId             string         `json:"user,omitempty"`
-	Nonce              string         `json:"nonce,omitempty"`
-	Active             bool           `json:"active,omitempty"`
-	Recipients         []string       `json:"recipients,omitempty"`
-	LastMessageID      string         `json:"last_message_id,omitempty"`
-	Name               string         `json:"name,omitempty"`
-	OwnerId            string         `json:"owner,omitempty"`
-	Description        string         `json:"description,omitempty"`
-	Icon               *File          `json:"icon,omitempty"`
-	DefaultPermissions *OverrideField `json:"default_permissions,omitempty"`
-	RolePermissions    interface{}    `json:"role_permissions,omitempty"`
-	Permissions        uint           `json:"permissions,omitempty"`
-	NSFW               bool           `json:"nsfw,omitempty"`
+	Id                 string                    `json:"_id,omitempty"`
+	ChannelType        ChannelType               `json:"channel_type,omitempty"`
+	UserId             string                    `json:"user,omitempty"`
+	Nonce              string                    `json:"nonce,omitempty"`
+	Active             bool                      `json:"active,omitempty"`
+	Recipients         []string                  `json:"recipients,omitempty"`
+	LastMessageID      string                    `json:"last_message_id,omitempty"`
+	Name               string                    `json:"name,omitempty"`
+	OwnerId            string                    `json:"owner,omitempty"`
+	Description        string                    `json:"description,omitempty"`
+	Icon               *File                     `json:"icon,omitempty"`
+	DefaultPermissions *OverrideField            `json:"default_permissions,omitempty"`
+	RolePermissions    map[string]*OverrideField `json:"role_permissions,omitempty"`
+	Permissions        uint                      `json:"permissions,omitempty"`
+	NSFW               bool                      `json:"nsfw,omitempty"`
 }
 
 type ChannelList []Channel
@@ -51,7 +51,7 @@ type ChannelType string
 
 // List of ChannelType
 const (
-	TEXT_ChannelType ChannelType = "Text"
+	TEXT_ChannelType  ChannelType = "Text"
 	VOICE_ChannelType ChannelType = "Voice"
 )
 
@@ -294,8 +294,6 @@ type MemberId struct {
 }
 
 // Time at which this user joined the server
-type MemberJoinedAt struct {
-}
 
 // Timestamp this member is timed out until
 type MemberTimeout struct {
@@ -1178,7 +1176,7 @@ type Member struct {
 	// Unique member id
 	Id *MemberId `json:"_id"`
 	// Time at which this user joined the server
-	JoinedAt *MemberJoinedAt `json:"joined_at"`
+	JoinedAt string `json:"joined_at"`
 	// Member's nickname
 	Nickname string `json:"nickname,omitempty"`
 	// Avatar attachment
