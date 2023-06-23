@@ -29,7 +29,7 @@ func (e APIError) Type() string {
 // Channel struct.
 type Channel struct {
 	Id                 string         `json:"_id,omitempty"`
-	ChannelType        string         `json:"channel_type,omitempty"`
+	ChannelType        ChannelType    `json:"channel_type,omitempty"`
 	UserId             string         `json:"user,omitempty"`
 	Nonce              string         `json:"nonce,omitempty"`
 	Active             bool           `json:"active,omitempty"`

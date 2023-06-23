@@ -18,6 +18,8 @@ type testConfig struct {
 
 const (
 	UserZomatree = "01FD58YK5W7QRV5H3D64KTQYX3"
+	TestChannel  = "01G11DTVYAJQCJJ9VZMA6GRND3"
+	DMableUser   = "01FEZ09YRQ02C5XVBW6DG4QFQC"
 )
 
 // Defines a set of common functions for testing
