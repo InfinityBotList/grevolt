@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/client/auth"
+	"github.com/infinitybotlist/grevolt/extras/advancedevents"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/types/events"
@@ -68,55 +70,83 @@ func main() {
 		panic(err)
 	}
 
-	// Register ready event
-	c.Websocket.EventHandlers.Ready = func(w *gateway.GatewayClient, e *events.Ready) {
-		fmt.Println("Ready:", e.Users[0], e.Event.Type)
-
-		if e.Event.Type == "" {
-			panic("Ready event type is empty")
-		}
-
-		fmt.Println("Testing bulk commands now")
-
-		// This is how you send custom events so other parts of your code can handle them
-		//
-		// Its mostly for debugging purposes tho
-		var bulkCmd = &events.Bulk{
-			Event: events.Event{
-				Type: "Bulk",
-			},
-			V: []map[string]any{
-				{
-					"type": "MyTestBulkEvent",
-					"data": 10293,
-					"whoa": "!",
-				},
-				{
-					"type": "MyTestBulkEvent",
-					"data": 10294,
-					"whoa": "!",
-				},
-			},
-		}
-
-		bulkCmdParsed, err := c.Websocket.Encode(bulkCmd)
-
-		if err != nil {
-			panic(err)
-		}
-
-		c.Websocket.HandleEvent(bulkCmdParsed, "Bulk")
-	}
-
 	c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
 		if os.Getenv("DEBUG") == "true" {
 			fmt.Println(string(data))
 		}
 	}
 
-	c.Websocket.EventHandlers.Message = func(w *gateway.GatewayClient, e *events.Message) {
-		fmt.Println("Message:", e.Content, e.Author)
-	}
+	// Register ready event
+	// Here, we use advancedevents to provide a more advanced error handling system
+	c.Websocket.EventHandlers.Ready = advancedevents.NewEventHandler[events.Ready]().AddRaw(
+		advancedevents.EventFunc[events.Ready]{
+			ID: "readyEvent",
+			Handler: func(w *gateway.GatewayClient, e *events.Ready) error {
+				fmt.Println("Ready:", e.Users[0], e.Event.Type)
+
+				if e.Event.Type == "" {
+					return errors.New("ready event type is empty")
+				}
+
+				fmt.Println("Testing bulk commands now")
+
+				// This is how you send custom events so other parts of your code can handle them
+				//
+				// Its mostly for debugging purposes tho
+				var bulkCmd = &events.Bulk{
+					Event: events.Event{
+						Type: "Bulk",
+					},
+					V: []map[string]any{
+						{
+							"type": "MyTestBulkEvent",
+							"data": 10293,
+							"whoa": "!",
+						},
+						{
+							"type": "MyTestBulkEvent",
+							"data": 10294,
+							"whoa": "!",
+						},
+					},
+				}
+
+				bulkCmdParsed, err := c.Websocket.Encode(bulkCmd)
+
+				if err != nil {
+					return err
+				}
+
+				c.Websocket.HandleEvent(bulkCmdParsed, "Bulk")
+
+				return nil
+			},
+			ErrorHandlers: []advancedevents.ErrorHandler[events.Ready]{
+				func(w *gateway.GatewayClient, evt *events.Ready, err error, handler advancedevents.EventFunc[events.Ready]) {
+					w.Logger.Errorln("Error in ready handler", handler.ID, ":", err)
+				},
+			},
+		},
+	).Display()
+
+	c.Websocket.EventHandlers.Message = advancedevents.NewEventHandler[events.Message]().Add(
+		func(w *gateway.GatewayClient, e *events.Message) error {
+			fmt.Println("Message:", e.Content, e.Author)
+			return nil
+		},
+	).AddRaw(
+		advancedevents.EventFunc[events.Message]{
+			ID: "test",
+			Handler: func(w *gateway.GatewayClient, e *events.Message) error {
+				return errors.New("test error")
+			},
+			ErrorHandlers: []advancedevents.ErrorHandler[events.Message]{
+				func(w *gateway.GatewayClient, evt *events.Message, err error, handler advancedevents.EventFunc[events.Message]) {
+					w.Logger.Errorln("Error in handler", handler.ID, ":", err)
+				},
+			},
+		},
+	).Display()
 
 	c.Websocket.EventHandlers.MessageUpdate = func(w *gateway.GatewayClient, e *events.MessageUpdate) {
 		fmt.Println("MessageUpdate:", e, e.Data, e.Id, e.ChannelId, e.Data.Content, e.Data.Edited)
