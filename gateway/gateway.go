@@ -3,7 +3,6 @@ package gateway
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 	"sync"
@@ -53,6 +52,7 @@ type GatewayClient struct {
 
 	// The URL of the WS
 	WSUrl string
+
 	// API version
 	APIVersion string
 
@@ -108,7 +108,7 @@ func (w *GatewayClient) GatewayURL() string {
 	return gwUrl
 }
 
-// Opens a connection to the gateway
+// Opens a websocket connection to the gateway
 func (w *GatewayClient) Open() error {
 	// Ensure there is only one Open() call at a time
 	w.Lock()
@@ -233,7 +233,7 @@ func (w *GatewayClient) readMessages() {
 		w.wg.Done()
 	}()
 
-	fmt.Println("readMessages() started")
+	w.Logger.Info("readMessages task started")
 
 	w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 
@@ -382,11 +382,17 @@ func (w *GatewayClient) readMessages() {
 }
 
 func (w *GatewayClient) Send(data map[string]any) error {
+	if w.State != WsStateOpen {
+		return errors.New("websocket not open")
+	}
+
 	err := w.WsConn.SetWriteDeadline(time.Now().Add(w.Deadline))
 
 	if err != nil {
 		return errors.New("failed to set write deadline: " + err.Error())
 	}
+
+	w.Logger.Info("Send", data)
 
 	switch w.Encoding {
 	case "json":
@@ -481,8 +487,7 @@ func (w *GatewayClient) handleNotify() {
 			w.heartbeatId = ""
 			return
 		case EVENT_IOpCode:
-			// TODO: event handling
-			fmt.Println(string(payload.EventData))
+			go w.HandleEvent(payload.EventData)
 		}
 	}
 

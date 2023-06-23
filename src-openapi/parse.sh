@@ -82,6 +82,7 @@ remove_struct AllOfUserStatus # UserStatus is way better than this
 remove_struct AllOfUserProfile # UserProfile is way better than this
 remove_struct Channel # Its empty, needs to be patched
 remove_replace AllOfUserRelationship string
+remove_replace AllOfDataEditUserStatus UserStatus
 
 # Replace SnapshotContent with *Object
 replace_struct SnapshotContent Object
@@ -97,6 +98,10 @@ sed -i '' 's/\*string/string/g' types/types.go
 
 # All int32's should be int64, swagger bug
 sed -i '' 's/int32/int64/g' types/types.go
+
+# Fix presence
+sed -i '' 's/Presence string/Presence Presence/g' types/types.go
+sed -i '' 's/type Presence Presence/type Presence string/g' types/types.go
 
 # Finalize
 cp src-openapi/parse.patch tmp/parse.patch

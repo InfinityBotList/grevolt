@@ -7,11 +7,12 @@ import (
 
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/types"
 	"gopkg.in/yaml.v3"
 )
 
 var config struct {
-	SessionTokenUser string `yaml:"session_token_user"`
+	SessionTokenUser string `yaml:"session_token_bot"`
 }
 
 func main() {
@@ -36,11 +37,34 @@ func main() {
 
 	// Authorize the client
 	c.Authorize(&geneva.Token{
-		Bot:   false,
+		Bot:   true,
 		Token: config.SessionTokenUser,
 	})
 
-	fmt.Println("Done")
+	// Look Busy
+	self, apiErr, err := c.Rest.FetchSelf()
+
+	if err != nil {
+		panic(err)
+	}
+
+	if apiErr != nil {
+		panic(apiErr.Type())
+	}
+
+	c.Rest.EditUser(self.Id, &types.DataEditUser{
+		Status: &types.UserStatus{
+			Text:     "Meowing cats!",
+			Presence: types.IDLE_Presence,
+		},
+	})
+
+	// Prepare WS client
+	err = c.PrepareWS()
+
+	if err != nil {
+		panic(err)
+	}
 
 	for i := 0; i < 2; i++ {
 		test1(c, i)
@@ -52,15 +76,23 @@ func main() {
 }
 
 func test1(c *client.Client, i int) {
-	err := c.Open()
+	err := c.Websocket.Open()
 
 	if err != nil {
 		panic(err)
 	}
 
 	go func() {
-		// Wait for 10 seconds
 		time.Sleep(10 * time.Second)
+
+		c.Websocket.BeginTyping("01GDT82E0JPN8K40TDGM33QPXS")
+
+		time.Sleep(2 * time.Second)
+
+		c.Websocket.EndTyping("01GDT82E0JPN8K40TDGM33QPXS")
+
+		// Wait for 30 seconds
+		time.Sleep(30 * time.Second)
 
 		// Close the client
 		fmt.Println("Closing", i)
@@ -71,7 +103,7 @@ func test1(c *client.Client, i int) {
 }
 
 func test2(c *client.Client, i int) {
-	err := c.Open()
+	err := c.Websocket.Open()
 
 	if err != nil {
 		panic(err)

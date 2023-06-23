@@ -174,12 +174,6 @@ type DataEditUserProfile struct {
 }
 
 // New user status
-type DataEditUserStatus struct {
-	// Custom status text
-	Text string `json:"text,omitempty"`
-	// Current presence option
-	Presence *Object `json:"presence,omitempty"`
-}
 
 // Timestamp this member is timed out until
 type DataMemberEditTimeout struct {
@@ -892,7 +886,7 @@ type DataEditUser struct {
 	// Attachment Id for avatar
 	Avatar string `json:"avatar,omitempty"`
 	// New user status
-	Status *DataEditUserStatus `json:"status,omitempty"`
+	Status *UserStatus `json:"status,omitempty"`
 	// New user profile data  This is applied as a partial.
 	Profile *DataEditUserProfile `json:"profile,omitempty"`
 	// Bitfield of user badges
@@ -1785,7 +1779,7 @@ type UserStatus struct {
 	// Custom status text
 	Text string `json:"text,omitempty"`
 	// Current presence option
-	Presence string `json:"presence,omitempty"`
+	Presence Presence `json:"presence,omitempty"`
 }
 
 // Video
