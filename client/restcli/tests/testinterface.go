@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/infinitybotlist/grevolt/client"
-	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/client/auth"
 	"gopkg.in/yaml.v3"
 )
 
@@ -55,7 +55,7 @@ func ITestStartup(t *testing.T) *client.Client {
 	c := client.New()
 
 	// Authorize the client, rn, we use the User API as the bot API is pretty crap
-	c.Authorize(&geneva.Token{
+	c.Authorize(&auth.Token{
 		Bot:   false,
 		Token: config.SessionTokenUser,
 	})

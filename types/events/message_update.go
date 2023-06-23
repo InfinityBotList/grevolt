@@ -13,6 +13,6 @@ type MessageUpdate struct {
 
 	// Partial message object, not all data is available
 	//
-	// Exactly which fields are available is subject to change and not documented.
+	// Exactly which fields are available is subject to change and thus not documented.
 	Data *types.Message `json:"data"`
 }

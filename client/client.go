@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/client/auth"
 	"github.com/infinitybotlist/grevolt/client/restcli"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/rest/restconfig"
@@ -29,7 +29,7 @@ func New() *Client {
 }
 
 // Authorizes to both rest and websocket (websocket not implemented yet)
-func (c *Client) Authorize(token *geneva.Token) {
+func (c *Client) Authorize(token *auth.Token) {
 	// Rest client
 	c.Rest.Config.SessionToken = token
 	c.Websocket.SessionToken = token

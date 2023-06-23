@@ -1,5 +1,5 @@
-// Package geneva contains common helpers and types for use in both rest and websocket configs
-package geneva
+// Package auth contains the struct for auth, this is required due to import cycles
+package auth
 
 // Token is a session token used for authorization
 type Token struct {

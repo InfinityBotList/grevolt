@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/gorilla/websocket"
-	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/client/auth"
 	"go.uber.org/zap"
 )
 
@@ -71,7 +71,7 @@ type GatewayClient struct {
 	// Logger to use, will be autofilled if not provided
 	Logger *zap.SugaredLogger
 	// Session token for requests
-	SessionToken *geneva.Token
+	SessionToken *auth.Token
 
 	// Websocker payload format, either json or msgpack (only these are supported by the client)
 	Encoding string

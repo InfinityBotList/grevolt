@@ -4,7 +4,8 @@ import (
 	"github.com/infinitybotlist/grevolt/types/events"
 )
 
-func createEvent[T events.EventInterface](
+// Emits an event to a function
+func CreateEvent[T events.EventInterface](
 	w *GatewayClient,
 	data []byte,
 	fn func(w *GatewayClient, evt *T),
@@ -77,29 +78,45 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	var err error
 	switch typ {
 	case "Error":
-		err = createEvent[events.Error](w, event, w.EventHandlers.Error)
+		err = CreateEvent[events.Error](w, event, w.EventHandlers.Error)
 	case "Authenticated":
-		err = createEvent[events.Authenticated](w, event, w.EventHandlers.Authenticated)
+		err = CreateEvent[events.Authenticated](w, event, w.EventHandlers.Authenticated)
 	case "Bulk":
-		err = createEvent[events.Bulk](w, event, w.EventHandlers.Bulk)
+		err = CreateEvent[events.Bulk](w, event, w.EventHandlers.Bulk)
 	case "Pong":
-		err = createEvent[events.Pong](w, event, w.EventHandlers.Pong)
+		err = CreateEvent[events.Pong](w, event, w.EventHandlers.Pong)
 	case "Ready":
-		err = createEvent[events.Ready](w, event, w.EventHandlers.Ready)
+		err = CreateEvent[events.Ready](w, event, w.EventHandlers.Ready)
 	case "Message":
-		err = createEvent[events.Message](w, event, w.EventHandlers.Message)
+		err = CreateEvent[events.Message](w, event, w.EventHandlers.Message)
 	case "MessageUpdate":
-		err = createEvent[events.MessageUpdate](w, event, w.EventHandlers.MessageUpdate)
+		err = CreateEvent[events.MessageUpdate](w, event, w.EventHandlers.MessageUpdate)
 	case "MessageAppend":
-		err = createEvent[events.MessageAppend](w, event, w.EventHandlers.MessageAppend)
+		err = CreateEvent[events.MessageAppend](w, event, w.EventHandlers.MessageAppend)
 	case "MessageDelete":
-		err = createEvent[events.MessageDelete](w, event, w.EventHandlers.MessageDelete)
+		err = CreateEvent[events.MessageDelete](w, event, w.EventHandlers.MessageDelete)
 	case "MessageReact":
-		err = createEvent[events.MessageReact](w, event, w.EventHandlers.MessageReact)
+		err = CreateEvent[events.MessageReact](w, event, w.EventHandlers.MessageReact)
 	case "MessageUnreact":
-		err = createEvent[events.MessageUnreact](w, event, w.EventHandlers.MessageUnreact)
+		err = CreateEvent[events.MessageUnreact](w, event, w.EventHandlers.MessageUnreact)
 	case "MessageRemoveReaction":
-		err = createEvent[events.MessageRemoveReaction](w, event, w.EventHandlers.MessageRemoveReaction)
+		err = CreateEvent[events.MessageRemoveReaction](w, event, w.EventHandlers.MessageRemoveReaction)
+	case "ChannelCreate":
+		err = CreateEvent[events.ChannelCreate](w, event, w.EventHandlers.ChannelCreate)
+	case "ChannelUpdate":
+		err = CreateEvent[events.ChannelUpdate](w, event, w.EventHandlers.ChannelUpdate)
+	case "ChannelDelete":
+		err = CreateEvent[events.ChannelDelete](w, event, w.EventHandlers.ChannelDelete)
+	case "ChannelGroupJoin":
+		err = CreateEvent[events.ChannelGroupJoin](w, event, w.EventHandlers.ChannelGroupJoin)
+	case "ChannelGroupLeave":
+		err = CreateEvent[events.ChannelGroupLeave](w, event, w.EventHandlers.ChannelGroupLeave)
+	case "ChannelStartTyping":
+		err = CreateEvent[events.ChannelStartTyping](w, event, w.EventHandlers.ChannelStartTyping)
+	case "ChannelStopTyping":
+		err = CreateEvent[events.ChannelStopTyping](w, event, w.EventHandlers.ChannelStopTyping)
+	case "ChannelAck":
+		err = CreateEvent[events.ChannelAck](w, event, w.EventHandlers.ChannelAck)
 	}
 
 	if err != nil {
@@ -158,4 +175,30 @@ type EventHandlers struct {
 	// a reaction while MessageUnreact is sent when a user removes
 	// their own reaction>
 	MessageRemoveReaction func(w *GatewayClient, e *events.MessageRemoveReaction)
+
+	// Channel created, the event object has the same schema as the Channel object in the API with the addition of an event type.
+	ChannelCreate func(w *GatewayClient, e *events.ChannelCreate)
+
+	// Channel details updated.
+	ChannelUpdate func(w *GatewayClient, e *events.ChannelUpdate)
+
+	// Channel has been deleted.
+	ChannelDelete func(w *GatewayClient, e *events.ChannelDelete)
+
+	// A user has joined the group.
+	ChannelGroupJoin func(w *GatewayClient, e *events.ChannelGroupJoin)
+
+	// A user has left the group.
+	ChannelGroupLeave func(w *GatewayClient, e *events.ChannelGroupLeave)
+
+	// A user has started typing in this channel.
+	ChannelStartTyping func(w *GatewayClient, e *events.ChannelStartTyping)
+
+	// A user has stopped typing in this channel.
+	ChannelStopTyping func(w *GatewayClient, e *events.ChannelStopTyping)
+
+	// You have acknowledged new messages in this channel up to this message ID.
+	//
+	// <official docs say the above, but it should be 'A user' instead of 'you'?>
+	ChannelAck func(w *GatewayClient, e *events.ChannelAck)
 }

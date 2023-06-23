@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/infinitybotlist/grevolt/client"
-	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/client/auth"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/types/events"
@@ -38,7 +38,7 @@ func main() {
 	fmt.Println(config.SessionTokenUser)
 
 	// Authorize the client
-	c.Authorize(&geneva.Token{
+	c.Authorize(&auth.Token{
 		Bot:   false,
 		Token: config.SessionTokenUser,
 	})

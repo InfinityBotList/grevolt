@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/infinitybotlist/grevolt/client"
-	"github.com/infinitybotlist/grevolt/client/geneva"
+	"github.com/infinitybotlist/grevolt/client/auth"
 	"gopkg.in/yaml.v3"
 )
 
@@ -32,7 +32,7 @@ func main() {
 	c := client.New()
 
 	// Authorize the client
-	c.Authorize(&geneva.Token{
+	c.Authorize(&auth.Token{
 		Bot:   true,
 		Token: config.SessionTokenBot,
 	})
