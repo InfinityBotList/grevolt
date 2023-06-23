@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"encoding/json"
 	"errors"
 	"net/url"
 	"strings"
@@ -9,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/gorilla/websocket"
 	"github.com/infinitybotlist/grevolt/client/geneva"
@@ -387,53 +385,6 @@ func (w *GatewayClient) readMessages() {
 	}
 }
 
-func (w *GatewayClient) Send(data map[string]any) error {
-	if w.State != WsStateOpen {
-		return errors.New("websocket not open")
-	}
-
-	err := w.WsConn.SetWriteDeadline(time.Now().Add(w.Deadline))
-
-	if err != nil {
-		return errors.New("failed to set write deadline: " + err.Error())
-	}
-
-	w.Logger.Debug("Send", data)
-
-	switch w.Encoding {
-	case "json":
-		// Marshal json
-		jsonData, err := json.Marshal(data)
-
-		if err != nil {
-			return errors.New("failed to marshal json: " + err.Error())
-		}
-
-		// Send json
-		err = w.WsConn.WriteMessage(websocket.TextMessage, jsonData)
-
-		if err != nil {
-			return errors.New("failed to send json: " + err.Error())
-		}
-	case "msgpack":
-		// Marshal msgpack
-		msgpackData, err := msgpack.Marshal(data)
-
-		if err != nil {
-			return errors.New("failed to marshal msgpack: " + err.Error())
-		}
-
-		// Send msgpack
-		err = w.WsConn.WriteMessage(websocket.BinaryMessage, msgpackData)
-
-		if err != nil {
-			return errors.New("failed to send msgpack: " + err.Error())
-		}
-	}
-
-	return nil
-}
-
 func (w *GatewayClient) handleNotify() {
 	restarter := func() {
 		// If closed, don't restart
@@ -496,7 +447,7 @@ func (w *GatewayClient) handleNotify() {
 			killer()
 			return
 		case EVENT_IOpCode:
-			go w.handleEvent(payload.Event.Data, payload.Event.Type)
+			go w.HandleEvent(payload.Event.Data, payload.Event.Type)
 		}
 	}
 

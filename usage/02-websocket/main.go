@@ -14,7 +14,7 @@ import (
 )
 
 var config struct {
-	SessionTokenUser string `yaml:"session_token_bot"`
+	SessionTokenUser string `yaml:"session_token_user"`
 }
 
 func main() {
@@ -39,7 +39,7 @@ func main() {
 
 	// Authorize the client
 	c.Authorize(&geneva.Token{
-		Bot:   true,
+		Bot:   false,
 		Token: config.SessionTokenUser,
 	})
 
@@ -70,12 +70,47 @@ func main() {
 
 	// Register ready event
 	c.Websocket.EventHandlers.Ready = func(w *gateway.GatewayClient, e *events.Ready) {
-		fmt.Println("Ready:", e.Users[0])
+		fmt.Println("Ready:", e.Users[0], e.Event.Type)
+
+		if e.Event.Type == "" {
+			panic("Ready event type is empty")
+		}
+
+		fmt.Println("Testing bulk commands now")
+
+		// This is how you send custom events so other parts of your code can handle them
+		//
+		// Its mostly for debugging purposes tho
+		var bulkCmd = &events.Bulk{
+			Event: events.Event{
+				Type: "Bulk",
+			},
+			V: []map[string]any{
+				{
+					"type": "MyTestBulkEvent",
+					"data": 10293,
+					"whoa": "!",
+				},
+				{
+					"type": "MyTestBulkEvent",
+					"data": 10294,
+					"whoa": "!",
+				},
+			},
+		}
+
+		bulkCmdParsed, err := c.Websocket.Encode(bulkCmd)
+
+		if err != nil {
+			panic(err)
+		}
+
+		c.Websocket.HandleEvent(bulkCmdParsed, "Bulk")
 	}
 
-	/*c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
+	c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
 		fmt.Println(string(data))
-	}*/
+	}
 
 	for i := 0; i < 2; i++ {
 		test1(c, i)

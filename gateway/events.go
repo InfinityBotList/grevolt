@@ -26,7 +26,41 @@ func createEvent[T events.EventInterface](
 	return nil
 }
 
-func (w *GatewayClient) handleEvent(event []byte, typ string) {
+func (w *GatewayClient) HandleBulk(event []byte) error {
+	var bulkData *events.Bulk
+
+	err := w.Recieve(event, &bulkData)
+
+	if err != nil {
+		return err
+	}
+
+	for _, evt := range bulkData.V {
+		bytes, err := w.Encode(evt)
+
+		if err != nil {
+			return err
+		}
+
+		typ, ok := evt["type"]
+
+		if !ok {
+			w.Logger.Error("event has no type", string(bytes))
+		}
+
+		typStr, ok := typ.(string)
+
+		if !ok {
+			w.Logger.Error("event type is not a string", string(bytes))
+		}
+
+		w.HandleEvent(bytes, typStr)
+	}
+
+	return nil
+}
+
+func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	if w.EventHandlers.RawSinkFunc != nil {
 		w.EventHandlers.RawSinkFunc(w, event, typ)
 	}
@@ -39,6 +73,9 @@ func (w *GatewayClient) handleEvent(event []byte, typ string) {
 		err = createEvent[events.Ready](w, event, w.EventHandlers.Ready)
 	case "Error":
 		err = createEvent[events.Error](w, event, w.EventHandlers.Error)
+	case "Bulk":
+		// Bulk is a bit unique, special handling is required
+		err = w.HandleBulk(event)
 	}
 
 	if err != nil {
