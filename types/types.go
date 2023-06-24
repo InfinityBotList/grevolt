@@ -340,8 +340,6 @@ type QueryExecStatsCollectionScans struct {
 }
 
 // Reported content
-type ReportContent struct {
-}
 
 // Build information
 type RevoltConfigBuild struct {
@@ -1474,7 +1472,7 @@ type Report struct {
 	// Id of the user creating this report
 	AuthorId string `json:"author_id"`
 	// Reported content
-	Content *ReportContent `json:"content"`
+	Content string `json:"content"`
 	// Additional report context
 	AdditionalContext string `json:"additional_context"`
 	// Additional notes included on the report
