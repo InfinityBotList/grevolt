@@ -100,6 +100,11 @@ type CreateInviteResponseInvite struct {
 	// The server the invite points to if it is a server invite
 	Server string `json:"server,omitempty"`
 }
+
+// Rate limit struct
+type RateLimit struct {
+	RetryAfter int64 `json:"retry_after"`
+}
 type AccountInfo struct {
 	Id string `json:"_id"`
 	Email string `json:"email"`

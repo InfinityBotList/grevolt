@@ -3,3 +3,4 @@ go 1.20
 use . 
 use usage/01-fetchself
 use usage/02-websocket
+use usage/02-testrl

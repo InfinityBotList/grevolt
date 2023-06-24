@@ -19,7 +19,7 @@ type Client struct {
 func New() *Client {
 	return &Client{
 		Rest: restcli.RestClient{
-			Config: restconfig.DefaultRestConfig,
+			Config: restconfig.DefaultRestConfig(),
 		},
 		Websocket: gateway.GatewayClient{
 			APIVersion: "1",

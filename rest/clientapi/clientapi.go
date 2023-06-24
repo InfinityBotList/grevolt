@@ -3,15 +3,20 @@ package clientapi
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/infinitybotlist/grevolt/rest/clientapi/ratelimits"
 	"github.com/infinitybotlist/grevolt/rest/restconfig"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/version"
+	"github.com/sethgrid/pester"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -67,21 +72,29 @@ func (c ClientResponse) RetryAfter() string {
 
 // A request to the API
 type ClientRequest struct {
-	method  string
-	path    string
-	json    any
-	headers map[string]string
-	config  *restconfig.RestConfig
+	method   string
+	path     string
+	json     any
+	headers  map[string]string
+	config   *restconfig.RestConfig
+	sequence int // Sequence number for this request
+	bucket   *ratelimits.Bucket
 }
 
 // Makes a request to the API
-func (r ClientRequest) request() (*ClientResponse, error) {
+func (r ClientRequest) Request() (*ClientResponse, error) {
 	if r.method == "" {
 		r.method = "GET"
 	}
 
-	if !strings.HasPrefix(r.path, "/") {
-		r.path = "/" + r.path
+	if r.bucket == nil {
+		r.bucket = r.config.Ratelimiter.LockBucket(strings.SplitN(r.path, "?", 2)[0])
+	}
+
+	r.config.Logger.Debug("Acquired bucket ", r.bucket)
+
+	if r.bucket != nil {
+		r.config.Logger.Debug("Bucket name ", r.bucket.Key)
 	}
 
 	var body []byte
@@ -90,15 +103,18 @@ func (r ClientRequest) request() (*ClientResponse, error) {
 		body, err = json.Marshal(r.json)
 
 		if err != nil {
+			r.bucket.Release(nil)
 			return nil, err
 		}
 	}
 
 	r.config.Logger.Debug(r.method, r.config.APIUrl+r.path, " (reqBody:", len(body), "bytes)")
 
+	r.config.Logger.Debugln("MakeNewRequest", r.method, r.config.APIUrl+r.path, " (reqBody:", len(body), "bytes)")
 	req, err := http.NewRequest(r.method, r.config.APIUrl+r.path, bytes.NewReader(body))
 
 	if err != nil {
+		r.bucket.Release(nil)
 		return nil, err
 	}
 
@@ -109,14 +125,58 @@ func (r ClientRequest) request() (*ClientResponse, error) {
 	req.Header.Add("User-Agent", "grevolt/"+version.Version)
 	req.Header.Add("Content-Type", "application/json")
 
-	client := http.Client{
-		Timeout: r.config.Timeout,
-	}
+	r.config.Pester.Timeout = r.config.Timeout
+	r.config.Pester.MaxRetries = r.config.MaxRestRetries
+	r.config.Pester.Backoff = pester.ExponentialBackoff
+	r.config.Pester.KeepLog = true
+	r.config.Pester.RetryOnHTTP429 = false
 
-	resp, err := client.Do(req)
+	resp, err := pester.Do(req)
 
 	if err != nil {
+		r.bucket.Release(nil)
 		return nil, err
+	}
+
+	err = r.bucket.Release(resp.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	switch resp.StatusCode {
+	case http.StatusBadGateway:
+		// Retry sending request if possible
+		if r.sequence < r.config.MaxRestRetries {
+
+			r.config.Logger.Errorf("%s Failed (%s), Retrying...", r.path, resp.Status)
+
+			r.config.Ratelimiter.LockBucketObject(r.bucket)
+			r.sequence++
+
+			return r.Request()
+		} else {
+			return nil, fmt.Errorf("exceeded Max retries HTTP %s, %s", resp.Status, r.path)
+		}
+	case http.StatusTooManyRequests:
+		// Rate limited
+		var rl *types.RateLimit
+		err = json.NewDecoder(resp.Body).Decode(&rl)
+		if err != nil {
+			r.config.Logger.Errorf("rate limit unmarshal error, %s", err)
+			return nil, err
+		}
+
+		if r.config.RetryOnRatelimit {
+			r.config.Logger.Infof("Rate Limiting %s, retry in %v", r.path, rl.RetryAfter)
+			time.Sleep(time.Duration(rl.RetryAfter) * time.Millisecond)
+
+			r.config.Ratelimiter.LockBucketObject(r.bucket)
+			r.sequence++
+
+			return r.Request()
+		} else {
+			return nil, errors.New("ratelimited:" + strconv.Itoa(int(rl.RetryAfter)))
+		}
 	}
 
 	return &ClientResponse{
@@ -214,6 +274,7 @@ func (r ClientRequest) AutoLogger() ClientRequest {
 	)
 
 	r.config.Logger = zap.New(core).Sugar()
+	r.config.Ratelimiter.Logger = r.config.Logger
 
 	return r
 }
@@ -234,7 +295,7 @@ func (r ClientRequest) Do() (*ClientResponse, error) {
 
 	r.config.Logger.Debug(r.headers)
 
-	return r.request()
+	return r.Request()
 }
 
 // Executes the request and unmarshals the response body if the response is OK otherwise returns error
