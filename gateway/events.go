@@ -4,11 +4,16 @@ import (
 	"github.com/infinitybotlist/grevolt/types/events"
 )
 
+type EventContext struct {
+	// Raw event data
+	Raw []byte
+}
+
 // Emits an event to a function
 func CreateEvent[T events.EventInterface](
 	w *GatewayClient,
 	data []byte,
-	fn func(w *GatewayClient, evt *T),
+	fn func(w *GatewayClient, ctx *EventContext, evt *T),
 ) error {
 	var evtMarshalled *T
 
@@ -22,7 +27,9 @@ func CreateEvent[T events.EventInterface](
 		return nil
 	}
 
-	fn(w, evtMarshalled)
+	fn(w, &EventContext{
+		Raw: data,
+	}, evtMarshalled)
 
 	return nil
 }
@@ -196,41 +203,41 @@ type EventHandlers struct {
 	// An error occurred which meant you couldn't authenticate.
 	//
 	// <Note that grevolt handles these for you in general, but you can provide additional logic here>
-	Error func(w *GatewayClient, e *events.Error)
+	Error func(w *GatewayClient, ctx *EventContext, e *events.Error)
 
 	// The server has authenticated your connection and you will shortly start receiving data.
-	Authenticated func(w *GatewayClient, e *events.Authenticated)
+	Authenticated func(w *GatewayClient, ctx *EventContext, e *events.Authenticated)
 
 	// Several events have been sent, process each item of v as its own event.
 	//
 	// <Note that grevolt handles these for you in general, but you can provide additional logic here>
-	Bulk func(w *GatewayClient, e *events.Bulk)
+	Bulk func(w *GatewayClient, ctx *EventContext, e *events.Bulk)
 
 	// Ping response from the server.
 	//
 	// <Note that grevolt handles these for you in general, but you can provide additional logic here>
-	Pong func(w *GatewayClient, e *events.Pong)
+	Pong func(w *GatewayClient, ctx *EventContext, e *events.Pong)
 
 	// Data for use by client, data structures match the API specification
-	Ready func(w *GatewayClient, e *events.Ready)
+	Ready func(w *GatewayClient, ctx *EventContext, e *events.Ready)
 
 	// Message received, the event object has the same schema as the Message object in the API with the addition of an event type.
-	Message func(w *GatewayClient, e *events.Message)
+	Message func(w *GatewayClient, ctx *EventContext, e *events.Message)
 
 	// Message edited or otherwise updated.
-	MessageUpdate func(w *GatewayClient, e *events.MessageUpdate)
+	MessageUpdate func(w *GatewayClient, ctx *EventContext, e *events.MessageUpdate)
 
 	// Message has data being appended to it.
-	MessageAppend func(w *GatewayClient, e *events.MessageAppend)
+	MessageAppend func(w *GatewayClient, ctx *EventContext, e *events.MessageAppend)
 
 	// Message has been deleted.
-	MessageDelete func(w *GatewayClient, e *events.MessageDelete)
+	MessageDelete func(w *GatewayClient, ctx *EventContext, e *events.MessageDelete)
 
 	// A reaction has been added to a message.
-	MessageReact func(w *GatewayClient, e *events.MessageReact)
+	MessageReact func(w *GatewayClient, ctx *EventContext, e *events.MessageReact)
 
 	// A reaction has been removed from a message.
-	MessageUnreact func(w *GatewayClient, e *events.MessageUnreact)
+	MessageUnreact func(w *GatewayClient, ctx *EventContext, e *events.MessageUnreact)
 
 	// A certain reaction has been removed from the message.
 	//
@@ -238,71 +245,71 @@ type EventHandlers struct {
 	// this event is sent when a user with manage messages removes
 	// a reaction while MessageUnreact is sent when a user removes
 	// their own reaction>
-	MessageRemoveReaction func(w *GatewayClient, e *events.MessageRemoveReaction)
+	MessageRemoveReaction func(w *GatewayClient, ctx *EventContext, e *events.MessageRemoveReaction)
 
 	// Channel created, the event object has the same schema as the Channel object in the API with the addition of an event type.
-	ChannelCreate func(w *GatewayClient, e *events.ChannelCreate)
+	ChannelCreate func(w *GatewayClient, ctx *EventContext, e *events.ChannelCreate)
 
 	// Channel details updated.
-	ChannelUpdate func(w *GatewayClient, e *events.ChannelUpdate)
+	ChannelUpdate func(w *GatewayClient, ctx *EventContext, e *events.ChannelUpdate)
 
 	// Channel has been deleted.
-	ChannelDelete func(w *GatewayClient, e *events.ChannelDelete)
+	ChannelDelete func(w *GatewayClient, ctx *EventContext, e *events.ChannelDelete)
 
 	// A user has joined the group.
-	ChannelGroupJoin func(w *GatewayClient, e *events.ChannelGroupJoin)
+	ChannelGroupJoin func(w *GatewayClient, ctx *EventContext, e *events.ChannelGroupJoin)
 
 	// A user has left the group.
-	ChannelGroupLeave func(w *GatewayClient, e *events.ChannelGroupLeave)
+	ChannelGroupLeave func(w *GatewayClient, ctx *EventContext, e *events.ChannelGroupLeave)
 
 	// A user has started typing in this channel.
-	ChannelStartTyping func(w *GatewayClient, e *events.ChannelStartTyping)
+	ChannelStartTyping func(w *GatewayClient, ctx *EventContext, e *events.ChannelStartTyping)
 
 	// A user has stopped typing in this channel.
-	ChannelStopTyping func(w *GatewayClient, e *events.ChannelStopTyping)
+	ChannelStopTyping func(w *GatewayClient, ctx *EventContext, e *events.ChannelStopTyping)
 
 	// You have acknowledged new messages in this channel up to this message ID.
 	//
 	// <official docs say the above, but it should be 'A user' instead of 'you'?>
-	ChannelAck func(w *GatewayClient, e *events.ChannelAck)
+	ChannelAck func(w *GatewayClient, ctx *EventContext, e *events.ChannelAck)
 
 	// Server created, the event object has the same schema as the SERVER object in the API with the addition of an event type.
-	ServerCreate func(w *GatewayClient, e *events.ServerCreate)
+	ServerCreate func(w *GatewayClient, ctx *EventContext, e *events.ServerCreate)
 
 	// Server details updated.
-	ServerUpdate func(w *GatewayClient, e *events.ServerUpdate)
+	ServerUpdate func(w *GatewayClient, ctx *EventContext, e *events.ServerUpdate)
 
 	// Server has been deleted.
-	ServerDelete func(w *GatewayClient, e *events.ServerDelete)
+	ServerDelete func(w *GatewayClient, ctx *EventContext, e *events.ServerDelete)
 
 	// Server member details updated.
-	ServerMemberUpdate func(w *GatewayClient, e *events.ServerMemberUpdate)
+	ServerMemberUpdate func(w *GatewayClient, ctx *EventContext, e *events.ServerMemberUpdate)
 
 	// A user has joined the group.
 	//
 	// <this should be server, not group>
-	ServerMemberJoin func(w *GatewayClient, e *events.ServerMemberJoin)
+	ServerMemberJoin func(w *GatewayClient, ctx *EventContext, e *events.ServerMemberJoin)
 
 	// A user has left the group.
 	//
 	// <this should be server, not group>
-	ServerMemberLeave func(w *GatewayClient, e *events.ServerMemberLeave)
+	ServerMemberLeave func(w *GatewayClient, ctx *EventContext, e *events.ServerMemberLeave)
 
 	// Server role has been updated or created.
-	ServerRoleUpdate func(w *GatewayClient, e *events.ServerRoleUpdate)
+	ServerRoleUpdate func(w *GatewayClient, ctx *EventContext, e *events.ServerRoleUpdate)
 
 	// Server role has been deleted.
-	ServerRoleDelete func(w *GatewayClient, e *events.ServerRoleDelete)
+	ServerRoleDelete func(w *GatewayClient, ctx *EventContext, e *events.ServerRoleDelete)
 
 	// User has been updated.
-	UserUpdate func(w *GatewayClient, e *events.UserUpdate)
+	UserUpdate func(w *GatewayClient, ctx *EventContext, e *events.UserUpdate)
 
 	// Your relationship with another user has changed.
-	UserRelationship func(w *GatewayClient, e *events.UserRelationship)
+	UserRelationship func(w *GatewayClient, ctx *EventContext, e *events.UserRelationship)
 
 	// Settings updated remotely
 	// <undocumented, will likely be available in a future release>
-	UserSettingsUpdate func(w *GatewayClient, e *events.UserSettingsUpdate)
+	UserSettingsUpdate func(w *GatewayClient, ctx *EventContext, e *events.UserSettingsUpdate)
 
 	// User has been platform banned or deleted their account
 	//
@@ -313,26 +320,26 @@ type EventHandlers struct {
 	//   - Server Memberships
 	//
 	// User flags are specified to explain why a wipe is occurring though not all reasons will necessarily ever appear.
-	UserPlatformWipe func(w *GatewayClient, e *events.UserPlatformWipe)
+	UserPlatformWipe func(w *GatewayClient, ctx *EventContext, e *events.UserPlatformWipe)
 
 	// Emoji created, the event object has the same schema as the Emoji object in the API with the addition of an event type.
-	EmojiCreate func(w *GatewayClient, e *events.EmojiCreate)
+	EmojiCreate func(w *GatewayClient, ctx *EventContext, e *events.EmojiCreate)
 
 	// Emoji has been deleted.
-	EmojiDelete func(w *GatewayClient, e *events.EmojiDelete)
+	EmojiDelete func(w *GatewayClient, ctx *EventContext, e *events.EmojiDelete)
 
 	// Forwarded events from rAuth, currently only session deletion events are forwarded.
 	//
 	// <this event is special, you likely want AuthDeleteSession and AuthDeleteAllSessions instead>
-	Auth func(w *GatewayClient, e *events.Auth)
+	Auth func(w *GatewayClient, ctx *EventContext, e *events.Auth)
 
 	// A session has been deleted.
 	//
 	// Eq: Auth->DeleteSession
-	AuthDeleteSession func(w *GatewayClient, e *events.AuthDeleteSession)
+	AuthDeleteSession func(w *GatewayClient, ctx *EventContext, e *events.AuthDeleteSession)
 
 	// All sessions for this account have been deleted, optionally excluding a given ID.
 	//
 	// Eq: Auth->DeleteAllSessions
-	AuthDeleteAllSessions func(w *GatewayClient, e *events.AuthDeleteAllSessions)
+	AuthDeleteAllSessions func(w *GatewayClient, ctx *EventContext, e *events.AuthDeleteAllSessions)
 }

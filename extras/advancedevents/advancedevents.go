@@ -7,7 +7,7 @@ import (
 	"github.com/infinitybotlist/grevolt/types/events"
 )
 
-type EventHandlerFunc[T events.EventInterface] func(w *gateway.GatewayClient, evt *T) error
+type EventHandlerFunc[T events.EventInterface] func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *T) error
 
 // Event errors
 type EventFunc[T events.EventInterface] struct {
@@ -21,7 +21,7 @@ type EventFunc[T events.EventInterface] struct {
 	ErrorHandlers []ErrorHandler[T]
 }
 
-type ErrorHandler[T events.EventInterface] func(w *gateway.GatewayClient, evt *T, err error, handler EventFunc[T])
+type ErrorHandler[T events.EventInterface] func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *T, err error, handler EventFunc[T])
 
 // An event function, note that events are loaded *syncronously*
 // so you should make your event handlers accordingly
@@ -49,22 +49,22 @@ func NewEventHandler[T events.EventInterface]() *EventHandler[T] {
 	}
 }
 
-func (ef *EventHandler[T]) Build() func(w *gateway.GatewayClient, e *T) {
-	return func(w *gateway.GatewayClient, e *T) {
+func (ef *EventHandler[T]) Build() func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
+	return func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
 		for _, handler := range ef.Handlers {
-			err := handler.Handler(w, e)
+			err := handler.Handler(w, ctx, e)
 
 			if err != nil {
 				if len(handler.ErrorHandlers) > 0 {
 					for _, h := range handler.ErrorHandlers {
-						h(w, e, err, handler)
+						h(w, ctx, e, err, handler)
 					}
 				}
 
 				// Global handlers
 				if len(ef.GlobalErrorHandlers) > 0 {
 					for _, h := range ef.GlobalErrorHandlers {
-						h(w, e, err, handler)
+						h(w, ctx, e, err, handler)
 					}
 				}
 			}
@@ -106,20 +106,38 @@ func (ef *EventHandler[T]) AddRaw(fns ...EventFunc[T]) *EventHandler[T] {
 }
 
 // Wrap a event on top of potential other non-advancedevent events and friends
-func Wrap[T events.EventInterface](evt func(w *gateway.GatewayClient, e *T), funcs ...func(w *gateway.GatewayClient, e *T)) func(w *gateway.GatewayClient, e *T) {
+func Wrap[T events.EventInterface](evt func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T), funcs ...func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T)) func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
 	if evt == nil {
-		return func(w *gateway.GatewayClient, e *T) {
+		return func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
 			for _, fn := range funcs {
-				fn(w, e)
+				fn(w, ctx, e)
 			}
 		}
 	}
 
-	return func(w *gateway.GatewayClient, e *T) {
+	return func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
 		for _, fn := range funcs {
-			fn(w, e)
+			fn(w, ctx, e)
 		}
 
-		evt(w, e)
+		evt(w, ctx, e)
+	}
+}
+
+// Wrap a event below potential other non-advancedevent events and friends
+func WrapEnd[T events.EventInterface](evt func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T), funcs ...func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T)) func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
+	if evt == nil {
+		return func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
+			for _, fn := range funcs {
+				fn(w, ctx, e)
+			}
+		}
+	}
+
+	return func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *T) {
+		evt(w, ctx, e)
+		for _, fn := range funcs {
+			fn(w, ctx, e)
+		}
 	}
 }

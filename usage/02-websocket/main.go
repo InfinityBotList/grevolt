@@ -76,8 +76,8 @@ func main() {
 		}
 	}
 
-	c.Websocket.EventHandlers.Auth = func(w *gateway.GatewayClient, e *events.Auth) {
-		fmt.Println("Auth:", e.Event.Type)
+	c.Websocket.EventHandlers.Auth = func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Auth) {
+		fmt.Println("Auth:", e.Event.Type, ctx.Raw)
 	}
 
 	// Register ready event
@@ -85,7 +85,7 @@ func main() {
 	c.Websocket.EventHandlers.Ready = advancedevents.NewEventHandler[events.Ready]().AddRaw(
 		advancedevents.EventFunc[events.Ready]{
 			ID: "readyEvent",
-			Handler: func(w *gateway.GatewayClient, e *events.Ready) error {
+			Handler: func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Ready) error {
 				fmt.Println("Ready:", e.Users, e.Event.Type)
 
 				if e.Event.Type == "" {
@@ -126,7 +126,7 @@ func main() {
 				return nil
 			},
 			ErrorHandlers: []advancedevents.ErrorHandler[events.Ready]{
-				func(w *gateway.GatewayClient, evt *events.Ready, err error, handler advancedevents.EventFunc[events.Ready]) {
+				func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *events.Ready, err error, handler advancedevents.EventFunc[events.Ready]) {
 					w.Logger.Errorln("Error in ready handler", handler.ID, ":", err)
 				},
 			},
@@ -134,18 +134,18 @@ func main() {
 	).Build()
 
 	c.Websocket.EventHandlers.Message = advancedevents.NewEventHandler[events.Message]().Add(
-		func(w *gateway.GatewayClient, e *events.Message) error {
+		func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Message) error {
 			fmt.Println("Message:", e.Content, e.Author)
 			return nil
 		},
 	).AddRaw(
 		advancedevents.EventFunc[events.Message]{
 			ID: "test",
-			Handler: func(w *gateway.GatewayClient, e *events.Message) error {
+			Handler: func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Message) error {
 				return errors.New("test error")
 			},
 			ErrorHandlers: []advancedevents.ErrorHandler[events.Message]{
-				func(w *gateway.GatewayClient, evt *events.Message, err error, handler advancedevents.EventFunc[events.Message]) {
+				func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *events.Message, err error, handler advancedevents.EventFunc[events.Message]) {
 					w.Logger.Errorln("Error in handler", handler.ID, ":", err)
 				},
 			},
@@ -156,29 +156,29 @@ func main() {
 	c.Websocket.EventHandlers.Message = advancedevents.Wrap(
 		c.Websocket.EventHandlers.Message,
 		advancedevents.NewMulti[events.Message](
-			func(w *gateway.GatewayClient, e *events.Message) {
+			func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Message) {
 				fmt.Println("Multi 1")
 			},
-			func(w *gateway.GatewayClient, e *events.Message) {
+			func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Message) {
 				fmt.Println("Multi 2")
 			},
 		).Build(),
 	)
 
 	// Single event style
-	c.Websocket.EventHandlers.MessageUpdate = func(w *gateway.GatewayClient, e *events.MessageUpdate) {
+	c.Websocket.EventHandlers.MessageUpdate = func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.MessageUpdate) {
 		fmt.Println("MessageUpdate:", e, e.Data, e.Id, e.ChannelId, e.Data.Content, e.Data.Edited)
 	}
 
-	c.Websocket.EventHandlers.MessageDelete = func(w *gateway.GatewayClient, e *events.MessageDelete) {
+	c.Websocket.EventHandlers.MessageDelete = func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.MessageDelete) {
 		fmt.Println("MessageDelete:", e, e.Id, e.ChannelId)
 	}
 
-	c.Websocket.EventHandlers.MessageReact = func(w *gateway.GatewayClient, e *events.MessageReact) {
+	c.Websocket.EventHandlers.MessageReact = func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.MessageReact) {
 		fmt.Println("MessageReact:", e, e.ChannelId, e.Id, e.UserId, e.EmojiId)
 	}
 
-	c.Websocket.EventHandlers.MessageUnreact = func(w *gateway.GatewayClient, e *events.MessageUnreact) {
+	c.Websocket.EventHandlers.MessageUnreact = func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.MessageUnreact) {
 		fmt.Println("MessageUnreact:", e, e.ChannelId, e.Id, e.UserId, e.EmojiId)
 	}
 
