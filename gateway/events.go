@@ -182,6 +182,12 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		err = CreateEvent[events.EmojiCreate](w, event, w.EventHandlers.EmojiCreate)
 	case "EmojiDelete":
 		err = CreateEvent[events.EmojiDelete](w, event, w.EventHandlers.EmojiDelete)
+	case "WebhookCreate":
+		err = CreateEvent[events.WebhookCreate](w, event, w.EventHandlers.WebhookCreate)
+	case "WebhookUpdate":
+		err = CreateEvent[events.WebhookUpdate](w, event, w.EventHandlers.WebhookUpdate)
+	case "WebhookDelete":
+		err = CreateEvent[events.WebhookDelete](w, event, w.EventHandlers.WebhookDelete)
 	case "ReportCreate":
 		err = CreateEvent[events.ReportCreate](w, event, w.EventHandlers.ReportCreate)
 	case "Auth":
@@ -350,4 +356,19 @@ type EventHandlers struct {
 	//
 	// Eq: Auth->DeleteAllSessions
 	AuthDeleteAllSessions func(w *GatewayClient, ctx *EventContext, e *events.AuthDeleteAllSessions)
+
+	// New webhook
+	//
+	// <undocumented, will likely be available in a future release>
+	WebhookCreate func(w *GatewayClient, ctx *EventContext, e *events.WebhookCreate)
+
+	// Update existing webhook
+	//
+	// <undocumented, will likely be available in a future release>
+	WebhookUpdate func(w *GatewayClient, ctx *EventContext, e *events.WebhookUpdate)
+
+	// Delete existing webhook
+	//
+	// <undocumented, will likely be available in a future release>
+	WebhookDelete func(w *GatewayClient, ctx *EventContext, e *events.WebhookDelete)
 }

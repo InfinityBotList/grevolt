@@ -62,7 +62,14 @@ type DataInviteBot struct {
 	Group string `json:"group,omitempty"`
 }
 
-// Begin types
+// FieldsWebhook : Optional fields on webhook object
+//
+// <undocumented, from https://github.com/revoltchat/backend/blob/master/crates/core/database/src/models/channel_webhooks/ops/mongodb.rs#L71>
+type FieldsWebhook string
+
+const (
+	AVATAR_FieldsWebhook FieldsWebhook = "Avatar"
+)
 
 type AccountInfo struct {
 	Id string `json:"_id"`
