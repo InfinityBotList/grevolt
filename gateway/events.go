@@ -64,6 +64,27 @@ func (w *GatewayClient) HandleBulk(event []byte) error {
 	return nil
 }
 
+func (w *GatewayClient) HandleAuth(event []byte) error {
+	var authData *events.Auth
+
+	err := w.Decode(event, &authData)
+
+	if err != nil {
+		return err
+	}
+
+	switch authData.Type {
+	case "DeleteSession":
+		return CreateEvent[events.AuthDeleteSession](w, event, w.EventHandlers.AuthDeleteSession)
+	case "DeleteAllSessions":
+		return CreateEvent[events.AuthDeleteAllSessions](w, event, w.EventHandlers.AuthDeleteAllSessions)
+	default:
+		w.Logger.Warn("Unknown auth event type: " + authData.Type)
+	}
+
+	return nil
+}
+
 func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	if w.EventHandlers.RawSinkFunc != nil {
 		w.EventHandlers.RawSinkFunc(w, event, typ)
@@ -72,6 +93,15 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	if typ == "Bulk" {
 		// Bulk is a bit unique, special handling is required
 		err := w.HandleBulk(event)
+
+		if err != nil {
+			w.Logger.Error(err)
+		}
+	}
+
+	if typ == "Auth" {
+		// Auth is a bit unique because of event it, handle it
+		err := w.HandleAuth(event)
 
 		if err != nil {
 			w.Logger.Error(err)
@@ -148,6 +178,10 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		err = CreateEvent[events.EmojiCreate](w, event, w.EventHandlers.EmojiCreate)
 	case "EmojiDelete":
 		err = CreateEvent[events.EmojiDelete](w, event, w.EventHandlers.EmojiDelete)
+	case "Auth":
+		err = CreateEvent[events.Auth](w, event, w.EventHandlers.Auth)
+	default:
+		w.Logger.Warn("Unknown event type: " + typ)
 	}
 
 	if err != nil {
@@ -289,4 +323,19 @@ type EventHandlers struct {
 
 	// Emoji has been deleted.
 	EmojiDelete func(w *GatewayClient, e *events.EmojiDelete)
+
+	// Forwarded events from rAuth, currently only session deletion events are forwarded.
+	//
+	// <this event is special, you likely want AuthDeleteSession and AuthDeleteAllSessions instead>
+	Auth func(w *GatewayClient, e *events.Auth)
+
+	// A session has been deleted.
+	//
+	// Eq: Auth->DeleteSession
+	AuthDeleteSession func(w *GatewayClient, e *events.AuthDeleteSession)
+
+	// All sessions for this account have been deleted, optionally excluding a given ID.
+	//
+	// Eq: Auth->DeleteAllSessions
+	AuthDeleteAllSessions func(w *GatewayClient, e *events.AuthDeleteAllSessions)
 }
