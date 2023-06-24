@@ -182,6 +182,8 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		err = CreateEvent[events.EmojiCreate](w, event, w.EventHandlers.EmojiCreate)
 	case "EmojiDelete":
 		err = CreateEvent[events.EmojiDelete](w, event, w.EventHandlers.EmojiDelete)
+	case "ReportCreate":
+		err = CreateEvent[events.ReportCreate](w, event, w.EventHandlers.ReportCreate)
 	case "Auth":
 		err = CreateEvent[events.Auth](w, event, w.EventHandlers.Auth)
 	default:
@@ -308,6 +310,7 @@ type EventHandlers struct {
 	UserRelationship func(w *GatewayClient, ctx *EventContext, e *events.UserRelationship)
 
 	// Settings updated remotely
+	//
 	// <undocumented, will likely be available in a future release>
 	UserSettingsUpdate func(w *GatewayClient, ctx *EventContext, e *events.UserSettingsUpdate)
 
@@ -327,6 +330,11 @@ type EventHandlers struct {
 
 	// Emoji has been deleted.
 	EmojiDelete func(w *GatewayClient, ctx *EventContext, e *events.EmojiDelete)
+
+	// New report
+	//
+	// <undocumented, will likely be available in a future release>
+	ReportCreate func(w *GatewayClient, ctx *EventContext, e *events.ReportCreate)
 
 	// Forwarded events from rAuth, currently only session deletion events are forwarded.
 	//
