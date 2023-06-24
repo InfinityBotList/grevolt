@@ -186,9 +186,7 @@ func main() {
 		test1(c, i)
 	}
 
-	//test2(c, 1)
-
-	/**/
+	test2(c, 1)
 }
 
 func test1(c *client.Client, i int) {
@@ -199,7 +197,13 @@ func test1(c *client.Client, i int) {
 	}
 
 	go func() {
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
+
+		// Close the client
+		fmt.Println("Closing", i)
+		c.Websocket.Close()
+
+		/*time.Sleep(10 * time.Second)
 
 		c.Websocket.BeginTyping("01GDT82E0JPN8K40TDGM33QPXS")
 
@@ -211,8 +215,8 @@ func test1(c *client.Client, i int) {
 		time.Sleep(30 * time.Second)
 
 		// Close the client
-		//fmt.Println("Closing", i)
-		//c.Websocket.Close()
+		fmt.Println("Closing", i)
+		c.Websocket.Close()*/
 	}()
 
 	c.Websocket.Wait()
@@ -225,12 +229,12 @@ func test2(c *client.Client, i int) {
 		panic(err)
 	}
 
-	/* go func() {
+	go func() {
 		// Wait for 10 seconds
 		time.Sleep(10 * time.Second)
 
 		// Close the client
-		fmt.Println("Closing", i)
+		fmt.Println("Restarting", i)
 
 		// Send restart payload
 		for {
@@ -241,6 +245,7 @@ func test2(c *client.Client, i int) {
 
 			time.Sleep(10 * time.Second)
 		}
-	}() */
+	}()
+
 	c.Websocket.Wait()
 }

@@ -7,10 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/gorilla/websocket"
 	"github.com/infinitybotlist/grevolt/client/auth"
+	"github.com/infinitybotlist/grevolt/gateway/broadcast"
 	"go.uber.org/zap"
 )
 
@@ -18,36 +17,98 @@ import (
 // a websocket that already is open.
 var ErrWSAlreadyOpen = errors.New("web socket already opened")
 
+// Internal IOpCodes allow for control handling of the WS
+//
+// This is the primitive for how reading and writing is synchronized
 type IOpCode int
 
 const (
-	KILL_IOpCode         IOpCode = iota
-	RESTART_IOpCode      IOpCode = iota
+	// Kill the websocket
+	KILL_IOpCode IOpCode = iota
+
+	// Restart the websocket
+	RESTART_IOpCode IOpCode = iota
+
+	// Authenticate the websocket
 	AUTHENTICATE_IOpCode IOpCode = iota
-	ERROR_IOpCode        IOpCode = iota
-	FATAL_IOpCode        IOpCode = iota
-	EVENT_IOpCode        IOpCode = iota
+
+	// An error has occured, this also triggers a restart after
+	// logging the error
+	ERROR_IOpCode IOpCode = iota
+
+	// A fatal error has occured, this kills the websocket
+	// after logging the error
+	FATAL_IOpCode IOpCode = iota
+
+	// Send an event to HandleEvent to be handled
+	EVENT_IOpCode IOpCode = iota
 )
 
+// Websocket state, you can use this to monitor the state of the websocket
+//
+// +unstable
 type WsState int
 
 const (
-	WsStateClosed     WsState = iota
-	WsStateOpening    WsState = iota
-	WsStateOpen       WsState = iota
-	WsStateClosing    WsState = iota
+	// The websocket is closed
+	WsStateClosed WsState = iota
+
+	// The websocket is opening
+	WsStateOpening WsState = iota
+
+	// The websocket is open and receiving events
+	WsStateOpen WsState = iota
+
+	// The websocket is closing
+	WsStateClosing WsState = iota
+
+	// The websocket is restarting
 	WsStateRestarting WsState = iota
 )
 
+// NotifyEvents are low level events that are fired when the WS receives a eent
+// to be fired. This is highly unstable, you likely want to use the EventHandlers
+// instead.
+//
+// +unstable
 type NotifyEvent struct {
 	Data []byte // Event data
 	Type string // Event type
 }
 
+// NotifyPayload is a payload that is sent to the NotifyChannel
+//
+// This is used to control the WS, and to send events to the EventHandlers. It is
+// also highly unstable, you likely want to use the EventHandlers instead.
+//
+// +unstable
 type NotifyPayload struct {
 	OpCode IOpCode        // Internal library OpCode
 	Data   map[string]any // Internal Opcode data
 	Event  NotifyEvent    // Event data, only applicable to EVENT_IOpCode
+}
+
+// StatusMessage is a message that is sent to the StatusChannel
+// to allow listening to status updates to the websocket
+type StatusMessage int
+
+const (
+	// DONE is sent when the websocket is done and all listeners
+	// should stop listening and end.
+	DONE_StatusMessage StatusMessage = iota
+
+	// WSEND is sent when the websocket has closed (restarts etc can cause this)
+	//
+	// Heartbeaters should listen for this and stop sending heartbeats when
+	// this is received.
+	WSEND_StatusMessage StatusMessage = iota
+)
+
+// Status payload, can be used functions such as Wait() etc
+//
+// +unstable
+type StatusPayload struct {
+	StatusMessage StatusMessage
 }
 
 type GatewayClient struct {
@@ -70,6 +131,7 @@ type GatewayClient struct {
 
 	// Logger to use, will be autofilled if not provided
 	Logger *zap.SugaredLogger
+
 	// Session token for requests
 	SessionToken *auth.Token
 
@@ -77,24 +139,29 @@ type GatewayClient struct {
 	Encoding string
 
 	// The websocket connection
+	//
+	// +unstable
 	WsConn *websocket.Conn
 
 	// Notifications from the WS
 	//
 	// This is very low level and should not be used unless you know what you are doing
+	//
+	// +unstable
 	NotifyChannel chan *NotifyPayload
 
 	// Websocket state
+	//
+	// +unstable
 	State WsState
 
 	// This channel is fired when status updates are received
-	StatusChannel chan bool
+	//
+	// +unstable
+	StatusChannel broadcast.BroadcastServer[*StatusPayload]
 
 	// Event handlers, set these to handle events
 	EventHandlers EventHandlers
-
-	// unique id describing the heartbeat
-	heartbeatId string
 
 	// websocket waitgroups
 	wg sync.WaitGroup
@@ -143,11 +210,10 @@ func (w *GatewayClient) Open() error {
 	// Reset connection
 	w.NotifyChannel = make(chan *NotifyPayload)
 
-	if !w.wsInitOnce {
-		w.StatusChannel = make(chan bool)
+	if !w.StatusChannel.Open {
+		w.StatusChannel = broadcast.NewBroadcastServer[*StatusPayload](w.Logger)
 	}
 
-	w.heartbeatId = ""
 	w.WsConn = nil
 
 	if w.Encoding == "" {
@@ -208,19 +274,20 @@ func (w *GatewayClient) Close() {
 
 // Wait for the gateway to close
 func (w *GatewayClient) Wait() {
-	for payload := range w.StatusChannel {
-		w.Logger.Debug("received exit payload: ", payload)
-		if payload {
+	sub := w.StatusChannel.Subscribe()
+	for payload := range sub {
+		w.Logger.Debug("received statusChannel payload: ", payload)
+
+		if payload == nil {
+			continue
+		}
+
+		if payload.StatusMessage == DONE_StatusMessage {
 			// Close the websocket
+			w.StatusChannel.CancelSubscription(sub)
 			return
 		}
 	}
-}
-
-// Waits for the gateway to close, then sends a notification to the notify channel
-func (w *GatewayClient) OnDone(notify chan bool) {
-	<-w.StatusChannel
-	notify <- true
 }
 
 type internalMessage struct {
@@ -333,10 +400,7 @@ func (w *GatewayClient) readMessages() {
 				}
 			case "Authenticated":
 				w.Logger.Debug("received Authenticated flag")
-				hbId := uuid.New().String()
-
-				w.heartbeatId = hbId
-				go w.heartbeat(hbId)
+				go w.heartbeat()
 				err = false
 			default: // No error, continue
 				err = false
@@ -404,6 +468,10 @@ func (w *GatewayClient) handleNotify() {
 		// Avoid leaking channels
 		close(w.NotifyChannel)
 
+		w.StatusChannel.Broadcast(&StatusPayload{
+			StatusMessage: WSEND_StatusMessage,
+		})
+
 		w.Logger.Debug("opening new connection to gateway")
 		go w.Open()
 	}
@@ -416,10 +484,11 @@ func (w *GatewayClient) handleNotify() {
 
 	killer := func() {
 		w.State = WsStateClosed
-		w.heartbeatId = ""
 		w.WsConn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, "closeWsConn"), time.Now().Add(w.Deadline))
 		w.WsConn.Close()
-		w.StatusChannel <- true
+		w.StatusChannel.Broadcast(&StatusPayload{
+			StatusMessage: DONE_StatusMessage,
+		})
 	}
 
 	for payload := range w.NotifyChannel {
@@ -456,27 +525,44 @@ func (w *GatewayClient) handleNotify() {
 	}
 }
 
-func (w *GatewayClient) heartbeat(hbId string) {
-	w.Logger.Debug("starting heartbeat, ", hbId)
+func (w *GatewayClient) heartbeat() {
+	hbStartTime := time.Now().Nanosecond()
+	w.Logger.Debug("starting heartbeat ", hbStartTime)
 	// Create new ticker
 	ticker := time.NewTicker(w.HeartbeatInterval)
 
 	// Send heartbeat
-	for range ticker.C {
-		if w.heartbeatId != hbId {
-			w.Logger.Debug("heartbeat id mismatch, this is normal especially due to restarts")
-			ticker.Stop()
-			return // Not the current heartbeat ws
-		}
+	sub := w.StatusChannel.Subscribe()
 
-		if w.State != WsStateOpen {
-			continue
-		}
+	defer func() {
+		ticker.Stop()
+		w.StatusChannel.CancelSubscription(sub)
+	}()
 
-		w.Logger.Debug("sending heartbeat")
-		w.Send(map[string]any{
-			"type": "Ping",
-			"data": time.Now().Unix(),
-		})
+	for {
+		select {
+		case p := <-sub:
+			if p == nil {
+				// The status channel has closed, we should also die
+				w.Logger.Debug("status channel closed, exiting heartbeat")
+				return
+			}
+
+			if p.StatusMessage == DONE_StatusMessage || p.StatusMessage == WSEND_StatusMessage {
+				w.Logger.Debug("stopping heartbeat")
+				return
+			}
+
+		case <-ticker.C:
+			if w.State != WsStateOpen {
+				continue
+			}
+
+			w.Logger.Debug("sending heartbeat", hbStartTime)
+			w.Send(map[string]any{
+				"type": "Ping",
+				"data": time.Now().Unix(),
+			})
+		}
 	}
 }
