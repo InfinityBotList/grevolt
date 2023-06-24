@@ -45,6 +45,10 @@ type Channel struct {
 	NSFW               bool                      `json:"nsfw,omitempty"`
 }
 
+type PatchOverrideField struct {
+	Permissions *Override `json:"permissions"`
+}
+
 type ChannelList []Channel
 
 type ChannelType string
@@ -70,3 +74,29 @@ type FieldsWebhook string
 const (
 	AVATAR_FieldsWebhook FieldsWebhook = "Avatar"
 )
+
+// InviteType : The type of an invite
+type InviteType string
+
+const (
+	GROUP_InviteType InviteType = "Group"
+	SERVER_InviteType InviteType = "Server"
+)
+
+// Representation of an created invite on Revolt
+type CreateInviteResponseInvite struct {
+	// The Id of the invite
+	Id string `json:"_id,omitempty"`
+
+	// The type of the invite
+	Type InviteType `json:"type,omitempty"`
+
+	// The creator of the invite
+	Creator string `json:"creator,omitempty"`
+
+	// The channel the invite is for
+	Channel string `json:"channel,omitempty"`
+
+	// The server the invite points to if it is a server invite
+	Server string `json:"server,omitempty"`
+}

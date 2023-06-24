@@ -20,6 +20,7 @@ const (
 	UserZomatree = "01FD58YK5W7QRV5H3D64KTQYX3"
 	TestChannel  = "01G11DTVYAJQCJJ9VZMA6GRND3"
 	DMableUser   = "01FEZ09YRQ02C5XVBW6DG4QFQC"
+	TestRole     = "01H3PQP49C2J75ZC7KGCAP317C"
 )
 
 // Defines a set of common functions for testing

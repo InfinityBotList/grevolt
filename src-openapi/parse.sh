@@ -102,12 +102,17 @@ sed -i '' 's/AllOf//g' types/types.go
 
 # With AllOf out, we can make more tweaks and patches
 remove_struct EmojiParent
+remove_struct Invite
 
 # Another really annoying thing is *string, make this string
 sed -i '' 's/\*string/string/g' types/types.go
 
 # All int32's should be int64, swagger bug
 sed -i '' 's/int32/int64/g' types/types.go
+
+# Convert all int64s to uint64
+sed -i '' 's/int64/uint64/g' types/types.go
+sed -i '' 's/uuint64/uint64/g' types/types.go
 
 # Fix presence
 sed -i '' 's/Presence string/Presence Presence/g' types/types.go

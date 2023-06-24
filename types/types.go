@@ -45,6 +45,10 @@ type Channel struct {
 	NSFW               bool                      `json:"nsfw,omitempty"`
 }
 
+type PatchOverrideField struct {
+	Permissions *Override `json:"permissions"`
+}
+
 type ChannelList []Channel
 
 type ChannelType string
@@ -71,6 +75,31 @@ const (
 	AVATAR_FieldsWebhook FieldsWebhook = "Avatar"
 )
 
+// InviteType : The type of an invite
+type InviteType string
+
+const (
+	GROUP_InviteType InviteType = "Group"
+	SERVER_InviteType InviteType = "Server"
+)
+
+// Representation of an created invite on Revolt
+type CreateInviteResponseInvite struct {
+	// The Id of the invite
+	Id string `json:"_id,omitempty"`
+
+	// The type of the invite
+	Type InviteType `json:"type,omitempty"`
+
+	// The creator of the invite
+	Creator string `json:"creator,omitempty"`
+
+	// The channel the invite is for
+	Channel string `json:"channel,omitempty"`
+
+	// The server the invite points to if it is a server invite
+	Server string `json:"server,omitempty"`
+}
 type AccountInfo struct {
 	Id string `json:"_id"`
 	Email string `json:"email"`
@@ -133,13 +162,13 @@ type CreateServerResponseServer struct {
 	// Roles for this server
 	Roles map[string]Role `json:"roles,omitempty"`
 	// Default set of server and channel permissions
-	DefaultPermissions int64 `json:"default_permissions"`
+	DefaultPermissions uint64 `json:"default_permissions"`
 	// Icon attachment
 	Icon *File `json:"icon,omitempty"`
 	// Banner attachment
 	Banner *File `json:"banner,omitempty"`
 	// Bitfield of server flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Whether this server is flagged as not safe for work
 	Nsfw bool `json:"nsfw,omitempty"`
 	// Whether to enable analytics
@@ -197,9 +226,9 @@ type DataMessageSendMasquerade struct {
 // Allow / deny values to set for this role
 type DataPermissions struct {
 	// Allow bit flags
-	Allow int64 `json:"allow"`
+	Allow uint64 `json:"allow"`
 	// Disallow bit flags
-	Deny int64 `json:"deny"`
+	Deny uint64 `json:"deny"`
 }
 
 // Content being reported
@@ -209,9 +238,9 @@ type DataReportContentContent struct {
 // Allow / deny values for the role in this server.
 type DataSetServerRolePermissionPermissions struct {
 	// Allow bit flags
-	Allow int64 `json:"allow"`
+	Allow uint64 `json:"allow"`
 	// Disallow bit flags
-	Deny int64 `json:"deny"`
+	Deny uint64 `json:"deny"`
 }
 
 // What owns this emoji
@@ -237,7 +266,7 @@ type FetchBotResponseBot struct {
 	// URL for privacy policy
 	PrivacyPolicyUrl string `json:"privacy_policy_url,omitempty"`
 	// Enum of bot flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 }
 
 // User object
@@ -255,13 +284,13 @@ type FetchBotResponseUser struct {
 	// Relationships with other users
 	Relations []Relationship `json:"relations,omitempty"`
 	// Bitfield of user badges
-	Badges int64 `json:"badges,omitempty"`
+	Badges uint64 `json:"badges,omitempty"`
 	// User's current status
 	Status *UserStatus `json:"status,omitempty"`
 	// User's profile page
 	Profile *UserProfile `json:"profile,omitempty"`
 	// Enum of user flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Whether this user is privileged
 	Privileged bool `json:"privileged,omitempty"`
 	// Bot information
@@ -285,7 +314,7 @@ type IndexAccessSince struct {
 // Access information
 type IndexAccesses struct {
 	// Operations since timestamp
-	Ops int64 `json:"ops"`
+	Ops uint64 `json:"ops"`
 	// Timestamp at which data keeping begun
 	Since *Object `json:"since"`
 }
@@ -341,9 +370,9 @@ type OptionsMessageSearchSort struct {
 // Stats regarding collection scans
 type QueryExecStatsCollectionScans struct {
 	// Number of total collection scans
-	Total int64 `json:"total"`
+	Total uint64 `json:"total"`
 	// Number of total collection scans not using a tailable cursor
-	NonTailable int64 `json:"nonTailable"`
+	NonTailable uint64 `json:"nonTailable"`
 }
 
 // Reported content
@@ -401,9 +430,9 @@ type RevoltFeaturesVoso struct {
 // Permissions available to this role
 type RolePermissions struct {
 	// Allow bit flags
-	A int64 `json:"a"`
+	A uint64 `json:"a"`
 	// Disallow bit flags
-	D int64 `json:"d"`
+	D uint64 `json:"d"`
 }
 
 // Unique member id
@@ -451,13 +480,13 @@ type SnapshotWithContextServer struct {
 	// Roles for this server
 	Roles map[string]Role `json:"roles,omitempty"`
 	// Default set of server and channel permissions
-	DefaultPermissions int64 `json:"default_permissions"`
+	DefaultPermissions uint64 `json:"default_permissions"`
 	// Icon attachment
 	Icon *File `json:"icon,omitempty"`
 	// Banner attachment
 	Banner *File `json:"banner,omitempty"`
 	// Bitfield of server flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Whether this server is flagged as not safe for work
 	Nsfw bool `json:"nsfw,omitempty"`
 	// Whether to enable analytics
@@ -538,7 +567,7 @@ type Bot struct {
 	// URL for privacy policy
 	PrivacyPolicyUrl string `json:"privacy_policy_url,omitempty"`
 	// Enum of bot flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 }
 
 // Bot information for if the user is a bot
@@ -589,9 +618,9 @@ type Category struct {
 // Query collection scan stats
 type CollectionScans struct {
 	// Number of total collection scans
-	Total int64 `json:"total"`
+	Total uint64 `json:"total"`
 	// Number of total collection scans not using a tailable cursor
-	NonTailable int64 `json:"nonTailable"`
+	NonTailable uint64 `json:"nonTailable"`
 }
 
 // Collection stats
@@ -605,7 +634,7 @@ type CollectionStats struct {
 	// Query exec stats
 	QueryExecStats *CollectionStatsQueryExecStats `json:"queryExecStats"`
 	// Number of documents in collection
-	Count int64 `json:"count"`
+	Count uint64 `json:"count"`
 }
 // ContentReportReason : Reason for reporting content (message or server)
 type ContentReportReason string
@@ -732,7 +761,7 @@ type DataCreateRole struct {
 	// Role name
 	Name string `json:"name"`
 	// Ranking position  Smaller values take priority.
-	Rank int64 `json:"rank,omitempty"`
+	Rank uint64 `json:"rank,omitempty"`
 }
 
 type DataCreateServer struct {
@@ -812,7 +841,7 @@ type DataEditRole struct {
 	// Whether this role should be displayed separately
 	Hoist bool `json:"hoist,omitempty"`
 	// Ranking position  Smaller values take priority.
-	Rank int64 `json:"rank,omitempty"`
+	Rank uint64 `json:"rank,omitempty"`
 	// Fields to remove from role object
 	Remove []FieldsRole `json:"remove,omitempty"`
 }
@@ -831,7 +860,7 @@ type DataEditServer struct {
 	// System message configuration
 	SystemMessages *ServerSystemMessages `json:"system_messages,omitempty"`
 	// Bitfield of server flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Whether this server is public and should show up on [Revolt Discover](https://rvlt.gg)
 	Discoverable bool `json:"discoverable,omitempty"`
 	// Whether analytics should be collected for this server  Must be enabled in order to show up on [Revolt Discover](https://rvlt.gg).
@@ -855,9 +884,9 @@ type DataEditUser struct {
 	// New user profile data  This is applied as a partial.
 	Profile *DataEditUserProfile `json:"profile,omitempty"`
 	// Bitfield of user badges
-	Badges int64 `json:"badges,omitempty"`
+	Badges uint64 `json:"badges,omitempty"`
 	// Enum of user flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Fields to remove from user object
 	Remove []FieldsUser `json:"remove,omitempty"`
 }
@@ -916,7 +945,7 @@ type DataPasswordReset struct {
 
 // Data permissions Value - contains allow
 type DataPermissionsValue struct {
-	Permissions int64 `json:"permissions"`
+	Permissions uint64 `json:"permissions"`
 }
 
 type DataReportContent struct {
@@ -1065,7 +1094,7 @@ type File struct {
 	// Raw content type of this file
 	ContentType string `json:"content_type"`
 	// Size of this file (in bytes)
-	Size int64 `json:"size"`
+	Size uint64 `json:"size"`
 	// Whether this file was deleted
 	Deleted bool `json:"deleted,omitempty"`
 	// Whether this file was reported
@@ -1079,7 +1108,7 @@ type File struct {
 
 type FlagResponse struct {
 	// Flags
-	Flags int64 `json:"flags"`
+	Flags uint64 `json:"flags"`
 }
 
 // Image
@@ -1087,9 +1116,9 @@ type Image struct {
 	// URL to the original image
 	Url string `json:"url"`
 	// Width of the image
-	Width int64 `json:"width"`
+	Width uint64 `json:"width"`
 	// Height of the image
-	Height int64 `json:"height"`
+	Height uint64 `json:"height"`
 	// Positioning and size
 	Size *ImageSize `json:"size"`
 }
@@ -1113,7 +1142,7 @@ type Index struct {
 // Index access information
 type IndexAccess struct {
 	// Operations since timestamp
-	Ops int64 `json:"ops"`
+	Ops uint64 `json:"ops"`
 	// Timestamp at which data keeping begun
 	Since *IndexAccessSince `json:"since"`
 }
@@ -1127,32 +1156,24 @@ type Interactions struct {
 }
 
 // Representation of an invite to a channel on Revolt
-type Invite struct {
-}
 
-type InviteBotDestination struct {
-}
 
-type InviteJoinResponse struct {
-}
 
-type InviteResponse struct {
-}
 
 // Histogram entry
 type LatencyHistogramEntry struct {
 	// Time
-	Micros int64 `json:"micros"`
+	Micros uint64 `json:"micros"`
 	// Count
-	Count int64 `json:"count"`
+	Count uint64 `json:"count"`
 }
 
 // Collection latency stats
 type LatencyStats struct {
 	// Total operations
-	Ops int64 `json:"ops"`
+	Ops uint64 `json:"ops"`
 	// Timestamp at which data keeping begun
-	Latency int64 `json:"latency"`
+	Latency uint64 `json:"latency"`
 	// Histogram representation of latency data
 	Histogram []LatencyHistogramEntry `json:"histogram"`
 }
@@ -1242,7 +1263,7 @@ type Message struct {
 // Filter and sort messages by time
 type MessageQuery struct {
 	// Maximum number of messages to fetch  For fetching nearby messages, this is \\`(limit + 1)\\`.
-	Limit int64 `json:"limit,omitempty"`
+	Limit uint64 `json:"limit,omitempty"`
 	// Parent channel ID
 	Channel string `json:"channel,omitempty"`
 	// Message author ID
@@ -1339,7 +1360,7 @@ type OptionsMessageSearch struct {
 	// Full-text search query  See [MongoDB documentation](https://docs.mongodb.com/manual/text-search/#-text-operator) for more information.
 	Query string `json:"query"`
 	// Maximum number of messages to fetch
-	Limit int64 `json:"limit,omitempty"`
+	Limit uint64 `json:"limit,omitempty"`
 	// Message id before which messages should be fetched
 	Before string `json:"before,omitempty"`
 	// Message id after which messages should be fetched
@@ -1358,17 +1379,17 @@ type OptionsQueryStale struct {
 // Representation of a single permission override
 type Override struct {
 	// Allow bit flags
-	Allow int64 `json:"allow"`
+	Allow uint64 `json:"allow"`
 	// Disallow bit flags
-	Deny int64 `json:"deny"`
+	Deny uint64 `json:"deny"`
 }
 
 // Representation of a single permission override as it appears on models and in the database
 type OverrideField struct {
 	// Allow bit flags
-	A int64 `json:"a"`
+	A uint64 `json:"a"`
 	// Disallow bit flags
-	D int64 `json:"d"`
+	D uint64 `json:"d"`
 }
 
 // Both lists are sorted by their IDs.
@@ -1554,7 +1575,7 @@ type Role struct {
 	// Whether this role should be shown separately on the member sidebar
 	Hoist bool `json:"hoist,omitempty"`
 	// Ranking of this role
-	Rank int64 `json:"rank,omitempty"`
+	Rank uint64 `json:"rank,omitempty"`
 }
 
 // Representation of a text embed before it is sent.
@@ -1586,13 +1607,13 @@ type Server struct {
 	// Roles for this server
 	Roles map[string]Role `json:"roles,omitempty"`
 	// Default set of server and channel permissions
-	DefaultPermissions int64 `json:"default_permissions"`
+	DefaultPermissions uint64 `json:"default_permissions"`
 	// Icon attachment
 	Icon *File `json:"icon,omitempty"`
 	// Banner attachment
 	Banner *File `json:"banner,omitempty"`
 	// Bitfield of server flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Whether this server is flagged as not safe for work
 	Nsfw bool `json:"nsfw,omitempty"`
 	// Whether to enable analytics
@@ -1684,13 +1705,13 @@ type User struct {
 	// Relationships with other users
 	Relations []Relationship `json:"relations,omitempty"`
 	// Bitfield of user badges
-	Badges int64 `json:"badges,omitempty"`
+	Badges uint64 `json:"badges,omitempty"`
 	// User's current status
 	Status *UserStatus `json:"status,omitempty"`
 	// User's profile page
 	Profile *UserProfile `json:"profile,omitempty"`
 	// Enum of user flags
-	Flags int64 `json:"flags,omitempty"`
+	Flags uint64 `json:"flags,omitempty"`
 	// Whether this user is privileged
 	Privileged bool `json:"privileged,omitempty"`
 	// Bot information
@@ -1752,9 +1773,9 @@ type Video struct {
 	// URL to the original video
 	Url string `json:"url"`
 	// Width of the video
-	Width int64 `json:"width"`
+	Width uint64 `json:"width"`
 	// Height of the video
-	Height int64 `json:"height"`
+	Height uint64 `json:"height"`
 }
 
 type VoiceFeature struct {

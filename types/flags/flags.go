@@ -3,7 +3,7 @@
 // Revolt does not provide bitflags so this file is used to provide a similar interface
 package flags
 
-type UserFlag int64
+type UserFlag uint64
 
 const (
 	// User has been suspended from the platform
@@ -23,7 +23,7 @@ const (
 	OFFICIAL_BotFlag = 2
 )
 
-type ServerFlag int64
+type ServerFlag uint64
 
 const (
 	VERIFIED_ServerFlag = 1
