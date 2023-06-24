@@ -275,6 +275,10 @@ func (w *GatewayClient) Close() {
 // Wait for the gateway to close
 func (w *GatewayClient) Wait() {
 	sub := w.StatusChannel.Subscribe()
+	defer func() {
+		w.StatusChannel.CancelSubscription(sub)
+		w.StatusChannel.Close()
+	}()
 	for payload := range sub {
 		w.Logger.Debug("received statusChannel payload: ", payload)
 
@@ -284,7 +288,6 @@ func (w *GatewayClient) Wait() {
 
 		if payload.StatusMessage == DONE_StatusMessage {
 			// Close the websocket
-			w.StatusChannel.CancelSubscription(sub)
 			return
 		}
 	}

@@ -80,13 +80,13 @@ func (s *BroadcastServer[T]) serve() {
 	for {
 		select {
 		case <-s.context.Done():
-			s.Logger.Info("Broadcast server shutting down")
+			s.Logger.Debug("Broadcast server: shutting down")
 			return
 		case newListener := <-s.addListener:
-			s.Logger.Info("New listener add")
+			s.Logger.Debug("Broadcast server: new listener add")
 			s.listeners = append(s.listeners, newListener)
 		case listenerToRemove := <-s.removeListener:
-			s.Logger.Info("Listener remove")
+			s.Logger.Debug("Broadcast server: listener remove")
 			for i, ch := range s.listeners {
 				if ch == listenerToRemove {
 					s.listeners[i] = s.listeners[len(s.listeners)-1]
@@ -96,7 +96,7 @@ func (s *BroadcastServer[T]) serve() {
 				}
 			}
 		case val, ok := <-s.Source:
-			s.Logger.Info("Broadcasting message: ", val, " to ", len(s.listeners), " listeners")
+			s.Logger.Debug("Broadcast server: ", val, " to ", len(s.listeners), " listeners")
 			if !ok {
 				return
 			}
