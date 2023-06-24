@@ -234,14 +234,14 @@ func test2(c *client.Client, i int) {
 		time.Sleep(10 * time.Second)
 
 		// Close the client
-		fmt.Println("Restarting", i)
+		fmt.Println("Restarting", i, c.Websocket.StatusChannel.ListenersCount())
 
 		// Send restart payload
 		for {
-			c.Websocket.NotifyChannel <- &gateway.NotifyPayload{
+			c.Websocket.NotifyChannel.Broadcast(&gateway.NotifyPayload{
 				OpCode: gateway.RESTART_IOpCode,
 				Data:   map[string]any{},
-			}
+			})
 
 			time.Sleep(10 * time.Second)
 		}

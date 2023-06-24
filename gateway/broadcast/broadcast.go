@@ -96,7 +96,6 @@ func (s *BroadcastServer[T]) serve() {
 				}
 			}
 		case val, ok := <-s.Source:
-			s.Logger.Debug("Broadcast server: ", val, " to ", len(s.listeners), " listeners")
 			if !ok {
 				return
 			}

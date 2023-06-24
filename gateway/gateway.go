@@ -148,26 +148,22 @@ type GatewayClient struct {
 	// This is very low level and should not be used unless you know what you are doing
 	//
 	// +unstable
-	NotifyChannel chan *NotifyPayload
+	NotifyChannel broadcast.BroadcastServer[*NotifyPayload]
+
+	// This channel is fired when status updates are received
+	//
+	// This is very low level and should not be used unless you know what you are doing
+	//
+	// +unstable
+	StatusChannel broadcast.BroadcastServer[*StatusPayload]
 
 	// Websocket state
 	//
 	// +unstable
 	State WsState
 
-	// This channel is fired when status updates are received
-	//
-	// +unstable
-	StatusChannel broadcast.BroadcastServer[*StatusPayload]
-
 	// Event handlers, set these to handle events
 	EventHandlers EventHandlers
-
-	// websocket waitgroups
-	wg sync.WaitGroup
-
-	// already initted ws
-	wsInitOnce bool
 }
 
 func (w *GatewayClient) GatewayURL() string {
@@ -188,9 +184,6 @@ func (w *GatewayClient) Open() error {
 		return ErrWSAlreadyOpen
 	}
 
-	w.Logger.Debug("waiting for old connections (if any) to close")
-	w.wg.Wait()
-
 	w.State = WsStateOpening
 
 	w.Logger.Debug("opening connection to gateway")
@@ -208,7 +201,9 @@ func (w *GatewayClient) Open() error {
 	}
 
 	// Reset connection
-	w.NotifyChannel = make(chan *NotifyPayload)
+	if !w.NotifyChannel.Open {
+		w.NotifyChannel = broadcast.NewBroadcastServer[*NotifyPayload](w.Logger)
+	}
 
 	if !w.StatusChannel.Open {
 		w.StatusChannel = broadcast.NewBroadcastServer[*StatusPayload](w.Logger)
@@ -246,15 +241,14 @@ func (w *GatewayClient) Open() error {
 	w.WsConn.SetCloseHandler(func(code int, text string) error {
 		w.State = WsStateClosed
 		w.Logger.Debug("websocket closed: ", code, text)
-		w.NotifyChannel <- &NotifyPayload{
+		w.NotifyChannel.Broadcast(&NotifyPayload{
 			OpCode: ERROR_IOpCode,
-		}
+		})
 
 		return nil
 	})
 
 	w.State = WsStateOpen
-	w.wsInitOnce = true
 
 	go w.handleNotify()
 	time.Sleep(1 * time.Second)
@@ -267,9 +261,9 @@ func (w *GatewayClient) Open() error {
 
 func (w *GatewayClient) Close() {
 	w.State = WsStateClosing
-	w.NotifyChannel <- &NotifyPayload{
+	w.NotifyChannel.Broadcast(&NotifyPayload{
 		OpCode: KILL_IOpCode,
-	}
+	})
 }
 
 // Wait for the gateway to close
@@ -299,11 +293,10 @@ type internalMessage struct {
 }
 
 func (w *GatewayClient) readMessages() {
-	w.wg.Add(1)
+	sub := w.StatusChannel.Subscribe()
 
 	defer func() {
-		w.Logger.Debug("wg decr (readMessages)")
-		w.wg.Done()
+		w.StatusChannel.CancelSubscription(sub)
 	}()
 
 	w.Logger.Debug("readMessages task started")
@@ -311,148 +304,168 @@ func (w *GatewayClient) readMessages() {
 	w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 
 	// Before doing anything else, send AUTHENTICATE_IOpCode
-	w.NotifyChannel <- &NotifyPayload{
+	w.NotifyChannel.Broadcast(&NotifyPayload{
 		OpCode: AUTHENTICATE_IOpCode,
-	}
+	})
 
 	for {
-		_, message, err := w.WsConn.ReadMessage()
+		select {
+		case p := <-sub:
+			if p == nil {
+				// The status channel has closed, we should also die
+				w.Logger.Debug("status channel closed, exiting readMessages")
+				return
+			}
 
-		var data internalMessage
+			if p.StatusMessage == DONE_StatusMessage || p.StatusMessage == WSEND_StatusMessage {
+				w.Logger.Debug("stopping readMessages")
+				return
+			}
+		default:
+			_, message, err := w.WsConn.ReadMessage()
 
-		// If we have a message, try and decode it first, before checking for a close code
-		if len(message) > 0 {
-			err = w.Decode(message, &data)
+			var data internalMessage
 
-			if err != nil {
-				w.Logger.Error("failed to unmarshal message: " + err.Error())
-				data = internalMessage{
-					Type: "InternalError",
+			// If we have a message, try and decode it first, before checking for a close code
+			if len(message) > 0 {
+				err = w.Decode(message, &data)
+
+				if err != nil {
+					w.Logger.Error("failed to unmarshal message: " + err.Error())
+					data = internalMessage{
+						Type: "InternalError",
+					}
+				}
+
+				// Before doing anything else, create a event so it can be handled
+				w.NotifyChannel.Broadcast(&NotifyPayload{
+					OpCode: EVENT_IOpCode,
+					Event: NotifyEvent{
+						Type: data.Type,
+						Data: message,
+					},
+				})
+
+				if data.Type == "" {
+					w.Logger.Warn("recieved message with empty type")
+					continue
+				}
+
+				// Error handling here, before checking frames, allows for detection of invalid auth credential errors
+				var err bool = true
+				switch data.Type {
+				case "Pong":
+					w.Logger.Debug("recieved pong from gateway")
+					w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
+					err = false
+				case "NotFound": // Undocumented, but means that auth credentials are invalid
+					w.Logger.Error("invalid auth credentials")
+					w.NotifyChannel.Broadcast(&NotifyPayload{
+						OpCode: FATAL_IOpCode,
+						Data: map[string]any{
+							"error": "invalid auth credentials",
+						},
+					})
+				case "LabelMe":
+					w.Logger.Debug("received LabelMe")
+					w.NotifyChannel.Broadcast(&NotifyPayload{
+						OpCode: ERROR_IOpCode,
+						Data: map[string]any{
+							"error": "recieved unknown error: label me",
+						},
+					})
+				case "InternalError":
+					w.Logger.Debug("received InternalError")
+					w.NotifyChannel.Broadcast(&NotifyPayload{
+						OpCode: ERROR_IOpCode,
+						Data: map[string]any{
+							"error": "recieved unknown error: internal error",
+						},
+					})
+				case "InvalidSession":
+					w.Logger.Debug("received InvalidSession")
+					w.NotifyChannel.Broadcast(&NotifyPayload{
+						OpCode: FATAL_IOpCode,
+						Data: map[string]any{
+							"error": "invalid session",
+						},
+					})
+				case "OnboardingNotFinished":
+					w.Logger.Debug("received OnboardingNotFinished")
+					w.NotifyChannel.Broadcast(&NotifyPayload{
+						OpCode: FATAL_IOpCode,
+						Data: map[string]any{
+							"error": "onboarding not finished [OnboardingNotFinished]",
+						},
+					})
+				// TODO: rethink this: ERROR vs NOTIFY
+				case "AlreadyAuthenticated":
+					w.Logger.Debug("received AlreadyAuthenticated")
+					w.NotifyChannel.Broadcast(&NotifyPayload{
+						OpCode: ERROR_IOpCode,
+						Data: map[string]any{
+							"error": "already authenticated [AlreadyAuthenticated]",
+						},
+					})
+				case "Authenticated":
+					w.Logger.Debug("received Authenticated flag")
+					go w.heartbeat()
+					err = false
+				default: // No error, continue
+					err = false
+				}
+
+				if err {
+					time.Sleep(1 * time.Second)
+					return
 				}
 			}
 
-			// Before doing anything else, create a event so it can be handled
-			w.NotifyChannel <- &NotifyPayload{
-				OpCode: EVENT_IOpCode,
-				Event: NotifyEvent{
-					Type: data.Type,
-					Data: message,
-				},
+			// Now we can check error freely as this is a close code
+			if err != nil {
+				// Check if its a "use of closed network connection" error
+				//
+				// These are not fatal and should definitely not be spawning a notify payload
+				if strings.Contains(err.Error(), "use of closed network connection") {
+					w.Logger.Debug("websocket closed, exiting readMessages()")
+					return
+				}
+
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					w.Logger.Debug("error: %v", err)
+				}
+
+				// Send whatever we have to the notify channel
+				w.Logger.Error("failed to read message: " + err.Error())
+				w.NotifyChannel.Broadcast(&NotifyPayload{
+					OpCode: ERROR_IOpCode,
+					Data: map[string]any{
+						"error": err.Error(),
+						"msg":   message,
+					},
+				})
+
+				return
 			}
 
-			if data.Type == "" {
-				w.Logger.Warn("recieved message with empty type")
+			if len(message) == 0 {
+				w.Logger.Warn("recieved empty message")
 				continue
 			}
 
-			// Error handling here, before checking frames, allows for detection of invalid auth credential errors
-			var err bool = true
-			switch data.Type {
-			case "Pong":
-				w.Logger.Debug("recieved pong from gateway")
-				w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
-				err = false
-			case "NotFound": // Undocumented, but means that auth credentials are invalid
-				w.Logger.Error("invalid auth credentials")
-				w.NotifyChannel <- &NotifyPayload{
-					OpCode: FATAL_IOpCode,
-					Data: map[string]any{
-						"error": "invalid auth credentials",
-					},
-				}
-			case "LabelMe":
-				w.Logger.Debug("received LabelMe")
-				w.NotifyChannel <- &NotifyPayload{
-					OpCode: ERROR_IOpCode,
-					Data: map[string]any{
-						"error": "recieved unknown error: label me",
-					},
-				}
-			case "InternalError":
-				w.Logger.Debug("received InternalError")
-				w.NotifyChannel <- &NotifyPayload{
-					OpCode: ERROR_IOpCode,
-					Data: map[string]any{
-						"error": "recieved unknown error: internal error",
-					},
-				}
-			case "InvalidSession":
-				w.Logger.Debug("received InvalidSession")
-				w.NotifyChannel <- &NotifyPayload{
-					OpCode: FATAL_IOpCode,
-					Data: map[string]any{
-						"error": "invalid session",
-					},
-				}
-			case "OnboardingNotFinished":
-				w.Logger.Debug("received OnboardingNotFinished")
-				w.NotifyChannel <- &NotifyPayload{
-					OpCode: FATAL_IOpCode,
-					Data: map[string]any{
-						"error": "onboarding not finished [OnboardingNotFinished]",
-					},
-				}
-			// TODO: rethink this: ERROR vs NOTIFY
-			case "AlreadyAuthenticated":
-				w.Logger.Debug("received AlreadyAuthenticated")
-				w.NotifyChannel <- &NotifyPayload{
-					OpCode: ERROR_IOpCode,
-					Data: map[string]any{
-						"error": "already authenticated [AlreadyAuthenticated]",
-					},
-				}
-			case "Authenticated":
-				w.Logger.Debug("received Authenticated flag")
-				go w.heartbeat()
-				err = false
-			default: // No error, continue
-				err = false
-			}
-
-			if err {
-				time.Sleep(1 * time.Second)
-				return
-			}
+			// Recieved message successfully, extend deadline
+			w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 		}
-
-		// Now we can check error freely as this is a close code
-		if err != nil {
-			// Check if its a "use of closed network connection" error
-			//
-			// These are not fatal and should definitely not be spawning a notify payload
-			if strings.Contains(err.Error(), "use of closed network connection") {
-				w.Logger.Debug("websocket closed, exiting readMessages()")
-				return
-			}
-
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				w.Logger.Debug("error: %v", err)
-			}
-
-			// Send whatever we have to the notify channel
-			w.Logger.Error("failed to read message: " + err.Error())
-			w.NotifyChannel <- &NotifyPayload{
-				OpCode: ERROR_IOpCode,
-				Data: map[string]any{
-					"error": err.Error(),
-					"msg":   message,
-				},
-			}
-
-			return
-		}
-
-		if len(message) == 0 {
-			w.Logger.Warn("recieved empty message")
-			continue
-		}
-
-		// Recieved message successfully, extend deadline
-		w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 	}
 }
 
 func (w *GatewayClient) handleNotify() {
+	sub := w.NotifyChannel.Subscribe()
+
+	defer func() {
+		w.NotifyChannel.CancelSubscription(sub)
+	}()
+
 	restarter := func() {
 		// If closed, don't restart
 		if w.State == WsStateClosed {
@@ -463,13 +476,13 @@ func (w *GatewayClient) handleNotify() {
 		w.Logger.Debug("restarting connection to gateway")
 
 		// Send restart opcode
-		w.Logger.Debug("sending restart opcode")
+		w.Logger.Debug("sending restart opcode with timeout of", w.Deadline, "seconds")
+
 		w.WsConn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, "closeWsConn"), time.Now().Add(w.Deadline))
 		w.WsConn.Close()
 		w.State = WsStateRestarting
 
-		// Avoid leaking channels
-		close(w.NotifyChannel)
+		w.Logger.Debug("broadcasting status message")
 
 		w.StatusChannel.Broadcast(&StatusPayload{
 			StatusMessage: WSEND_StatusMessage,
@@ -479,22 +492,19 @@ func (w *GatewayClient) handleNotify() {
 		go w.Open()
 	}
 
-	w.wg.Add(1)
-	defer func() {
-		w.Logger.Debug("wg decr (handleNotify)")
-		w.wg.Done()
-	}()
-
 	killer := func() {
 		w.State = WsStateClosed
 		w.WsConn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, "closeWsConn"), time.Now().Add(w.Deadline))
 		w.WsConn.Close()
+
+		w.Logger.Debug("broadcasting status message")
+
 		w.StatusChannel.Broadcast(&StatusPayload{
 			StatusMessage: DONE_StatusMessage,
 		})
 	}
 
-	for payload := range w.NotifyChannel {
+	for payload := range sub {
 		switch payload.OpCode {
 		case KILL_IOpCode:
 			w.Logger.Debug("killing connection to gateway")
