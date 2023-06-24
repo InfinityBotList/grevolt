@@ -49,7 +49,7 @@ func NewEventHandler[T events.EventInterface]() *EventHandler[T] {
 	}
 }
 
-func (ef *EventHandler[T]) Display() func(w *gateway.GatewayClient, e *T) {
+func (ef *EventHandler[T]) Build() func(w *gateway.GatewayClient, e *T) {
 	return func(w *gateway.GatewayClient, e *T) {
 		for _, handler := range ef.Handlers {
 			err := handler.Handler(w, e)

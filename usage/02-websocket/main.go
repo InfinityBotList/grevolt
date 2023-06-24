@@ -127,7 +127,7 @@ func main() {
 				},
 			},
 		},
-	).Display()
+	).Build()
 
 	c.Websocket.EventHandlers.Message = advancedevents.NewEventHandler[events.Message]().Add(
 		func(w *gateway.GatewayClient, e *events.Message) error {
@@ -146,7 +146,7 @@ func main() {
 				},
 			},
 		},
-	).Display()
+	).Build()
 
 	// We do a bit of wrapping to demonstrate advancedevents usage
 	c.Websocket.EventHandlers.Message = advancedevents.Wrap(
@@ -158,7 +158,7 @@ func main() {
 			func(w *gateway.GatewayClient, e *events.Message) {
 				fmt.Println("Multi 2")
 			},
-		).Display(),
+		).Build(),
 	)
 
 	// Single event style

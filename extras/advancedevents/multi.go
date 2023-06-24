@@ -23,7 +23,7 @@ func NewMulti[T events.EventInterface](evts ...func(w *gateway.GatewayClient, e 
 	}
 }
 
-func (m *Multi[T]) Display() func(w *gateway.GatewayClient, e *T) {
+func (m *Multi[T]) Build() func(w *gateway.GatewayClient, e *T) {
 	return func(w *gateway.GatewayClient, e *T) {
 		for _, f := range m.Funcs {
 			f(w, e)
