@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/infinitybotlist/grevolt/client/auth"
 	"github.com/infinitybotlist/grevolt/gateway/broadcast"
+	"github.com/infinitybotlist/grevolt/version"
 	"go.uber.org/zap"
 )
 
@@ -511,6 +512,7 @@ func (w *GatewayClient) handleNotify() {
 			w.Send(map[string]any{
 				"type":  "Authenticate",
 				"token": w.SessionToken.Token,
+				"info":  "grevolt/" + version.Version,
 			})
 		case ERROR_IOpCode:
 			w.Logger.Error("error from gateway: ", zap.String("error", payload.Error))
