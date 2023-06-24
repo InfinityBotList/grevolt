@@ -4,6 +4,7 @@ package ratelimits
 import (
 	"math"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,6 +13,8 @@ import (
 
 	"go.uber.org/zap"
 )
+
+var channelMessageRegex = regexp.MustCompile(`channels\/[A-za-z0-9]+\/messages`)
 
 // customRateLimit holds information for defining a custom rate limit
 type CustomRateLimit struct {
@@ -52,8 +55,32 @@ func (r *RateLimiter) GetBucket(pkey string) *Bucket {
 	r.Lock()
 	defer r.Unlock()
 
+	if !strings.Contains(pkey, ":") {
+		panic("invalid bucket key: " + pkey)
+	}
+
+	split := strings.Split(pkey, ":")
+
+	method, path := split[0], split[1]
+
+	r.Logger.Debug("GetBucket: ", method, " ", path)
+
+	// Specific bucket handles per method
+	if method == "POST" {
+		// Match channels/:id/messages using regex
+		if channelMessageRegex.MatchString(path) {
+			r.Logger.Debug("Matches channels/:id/messages, using special bucket")
+			path = "post@channels/:id/messages"
+		}
+	} else if method == "DELETE" {
+		if strings.HasPrefix(path, "/auth") {
+			r.Logger.Debug("Matches /auth/*")
+			path = "delete@auth"
+		}
+	}
+
 	// Buckets on revolt are set based on prefix, so
-	bucketName := strings.Split(pkey, "/")
+	bucketName := strings.Split(path, "/")
 
 	if len(bucketName) < 1 {
 		pkey = "global"

@@ -88,7 +88,7 @@ func (r ClientRequest) Request() (*ClientResponse, error) {
 	}
 
 	if r.bucket == nil {
-		r.bucket = r.config.Ratelimiter.LockBucket(strings.SplitN(r.path, "?", 2)[0])
+		r.bucket = r.config.Ratelimiter.LockBucket(r.method + ":" + strings.SplitN(r.path, "?", 2)[0])
 	}
 
 	r.config.Logger.Debug("Acquired bucket ", r.bucket)
