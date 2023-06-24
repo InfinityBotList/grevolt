@@ -12,6 +12,7 @@ import (
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/types/events"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
@@ -127,7 +128,11 @@ func main() {
 			},
 			ErrorHandlers: []advancedevents.ErrorHandler[events.Ready]{
 				func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *events.Ready, err error, handler advancedevents.EventFunc[events.Ready]) {
-					w.Logger.Errorln("Error in ready handler", handler.ID, ":", err)
+					w.Logger.Error(
+						"Error in ready handler",
+						zap.Error(err),
+						zap.String("handlerId", handler.ID),
+					)
 				},
 			},
 		},
@@ -146,7 +151,11 @@ func main() {
 			},
 			ErrorHandlers: []advancedevents.ErrorHandler[events.Message]{
 				func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *events.Message, err error, handler advancedevents.EventFunc[events.Message]) {
-					w.Logger.Errorln("Error in handler", handler.ID, ":", err)
+					w.Logger.Error(
+						"Error in message handler",
+						zap.Error(err),
+						zap.String("handlerId", handler.ID),
+					)
 				},
 			},
 		},
@@ -240,7 +249,6 @@ func test2(c *client.Client, i int) {
 		for {
 			c.Websocket.NotifyChannel.Broadcast(&gateway.NotifyPayload{
 				OpCode: gateway.RESTART_IOpCode,
-				Data:   map[string]any{},
 			})
 
 			time.Sleep(10 * time.Second)

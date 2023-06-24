@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"github.com/infinitybotlist/grevolt/types/events"
+	"go.uber.org/zap"
 )
 
 type EventContext struct {
@@ -53,13 +54,19 @@ func (w *GatewayClient) HandleBulk(event []byte) error {
 		typ, ok := evt["type"]
 
 		if !ok {
-			w.Logger.Error("event has no type", string(bytes))
+			w.Logger.Error(
+				"event has no type",
+				zap.Binary("evt", bytes),
+			)
 		}
 
 		typStr, ok := typ.(string)
 
 		if !ok {
-			w.Logger.Error("event type is not a string", string(bytes))
+			w.Logger.Error(
+				"event type is not a string",
+				zap.Binary("evt", bytes),
+			)
 		}
 
 		w.HandleEvent(bytes, typStr)
@@ -83,7 +90,10 @@ func (w *GatewayClient) HandleAuth(event []byte) error {
 	case "DeleteAllSessions":
 		return CreateEvent[events.AuthDeleteAllSessions](w, event, w.EventHandlers.AuthDeleteAllSessions)
 	default:
-		w.Logger.Warn("Unknown auth event type: " + authData.Type)
+		w.Logger.Warn(
+			"Unknown auth event type",
+			zap.String("eventType", authData.Type),
+		)
 	}
 
 	return nil
@@ -99,7 +109,10 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		err := w.HandleBulk(event)
 
 		if err != nil {
-			w.Logger.Error(err)
+			w.Logger.Error(
+				"bulk handler failed",
+				zap.Error(err),
+			)
 		}
 	}
 
@@ -108,7 +121,10 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		err := w.HandleAuth(event)
 
 		if err != nil {
-			w.Logger.Error(err)
+			w.Logger.Error(
+				"auth handler failed",
+				zap.Error(err),
+			)
 		}
 	}
 
@@ -197,7 +213,10 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	}
 
 	if err != nil {
-		w.Logger.Error(err)
+		w.Logger.Error(
+			"Event handling failed",
+			zap.Error(err),
+		)
 	}
 }
 

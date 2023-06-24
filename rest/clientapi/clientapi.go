@@ -91,6 +91,11 @@ func (r ClientRequest) Request() (*ClientResponse, error) {
 		r.bucket = r.config.Ratelimiter.LockBucket(r.method + ":" + strings.SplitN(r.path, "?", 2)[0])
 	}
 
+	if r.sequence > 0 {
+		// Exp backoff, 2^sequence * 100ms
+		time.Sleep(time.Duration(1<<r.sequence) * 100 * time.Millisecond)
+	}
+
 	r.config.Logger.Debug("Acquired bucket ", r.bucket)
 
 	if r.bucket != nil {

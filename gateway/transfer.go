@@ -65,8 +65,6 @@ func (w *GatewayClient) Send(data map[string]any) error {
 		return errors.New("failed to set write deadline: " + err.Error())
 	}
 
-	w.Logger.Debug("Send", data)
-
 	sendBytes, err := w.Encode(data)
 
 	if err != nil {

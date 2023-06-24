@@ -66,6 +66,8 @@ func (r *RateLimiter) GetBucket(pkey string) *Bucket {
 	r.Logger.Debug("GetBucket: ", method, " ", path)
 
 	// Specific bucket handles per method
+	//
+	// Non-exhaustive, but covers many cases
 	if method == "POST" {
 		// Match channels/:id/messages using regex
 		if channelMessageRegex.MatchString(path) {
@@ -87,6 +89,8 @@ func (r *RateLimiter) GetBucket(pkey string) *Bucket {
 	}
 
 	key := bucketName[0]
+
+	r.Logger.Debug("GetBucket: ", path)
 
 	if bucket, ok := r.Buckets[key]; ok {
 		return bucket

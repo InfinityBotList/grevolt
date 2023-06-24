@@ -60,7 +60,7 @@ func (c *Client) PrepareWS() error {
 	c.Websocket.WSUrl = cfg.Ws
 
 	if c.Websocket.Logger == nil {
-		c.Websocket.Logger = c.Rest.Config.Logger
+		c.Websocket.Logger = c.Rest.Config.Logger.Desugar()
 	}
 
 	return nil

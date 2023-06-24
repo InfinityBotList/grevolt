@@ -83,9 +83,9 @@ type NotifyEvent struct {
 //
 // +unstable
 type NotifyPayload struct {
-	OpCode IOpCode        // Internal library OpCode
-	Data   map[string]any // Internal Opcode data
-	Event  NotifyEvent    // Event data, only applicable to EVENT_IOpCode
+	OpCode IOpCode     // Internal library OpCode
+	Error  string      // Whether or not we are sending an error, only applicable to ERROR/FATAL_IOpCode
+	Event  NotifyEvent // Event data, only applicable to EVENT_IOpCode
 }
 
 // StatusMessage is a message that is sent to the StatusChannel
@@ -130,7 +130,7 @@ type GatewayClient struct {
 	HeartbeatInterval time.Duration
 
 	// Logger to use, will be autofilled if not provided
-	Logger *zap.SugaredLogger
+	Logger *zap.Logger
 
 	// Session token for requests
 	SessionToken *auth.Token
@@ -233,14 +233,14 @@ func (w *GatewayClient) Open() error {
 	w.WsConn, _, err = dialer.Dial(u.String(), nil)
 
 	if err != nil {
-		w.Logger.Error("connection error:", err)
+		w.Logger.Error("connection error:", zap.Error(err))
 		w.Close()
 		return errors.New("failed to connect to gateway: " + err.Error())
 	}
 
 	w.WsConn.SetCloseHandler(func(code int, text string) error {
 		w.State = WsStateClosed
-		w.Logger.Debug("websocket closed: ", code, text)
+		w.Logger.Debug("websocket closed: ", zap.Int("code", code), zap.String("closeText", text))
 		w.NotifyChannel.Broadcast(&NotifyPayload{
 			OpCode: ERROR_IOpCode,
 		})
@@ -274,11 +274,11 @@ func (w *GatewayClient) Wait() {
 		w.StatusChannel.Close()
 	}()
 	for payload := range sub {
-		w.Logger.Debug("received statusChannel payload: ", payload)
-
 		if payload == nil {
 			continue
 		}
+
+		w.Logger.Debug("received statusChannel payload", zap.Int("message", int(payload.StatusMessage)))
 
 		if payload.StatusMessage == DONE_StatusMessage {
 			// Close the websocket
@@ -362,50 +362,37 @@ func (w *GatewayClient) readMessages() {
 					w.Logger.Error("invalid auth credentials")
 					w.NotifyChannel.Broadcast(&NotifyPayload{
 						OpCode: FATAL_IOpCode,
-						Data: map[string]any{
-							"error": "invalid auth credentials",
-						},
+						Error:  "invalid auth credentials",
 					})
 				case "LabelMe":
 					w.Logger.Debug("received LabelMe")
 					w.NotifyChannel.Broadcast(&NotifyPayload{
 						OpCode: ERROR_IOpCode,
-						Data: map[string]any{
-							"error": "recieved unknown error: label me",
-						},
+						Error:  "recieved unknown error: label me",
 					})
 				case "InternalError":
 					w.Logger.Debug("received InternalError")
 					w.NotifyChannel.Broadcast(&NotifyPayload{
 						OpCode: ERROR_IOpCode,
-						Data: map[string]any{
-							"error": "recieved unknown error: internal error",
-						},
+						Error:  "recieved unknown error: internal error",
 					})
 				case "InvalidSession":
 					w.Logger.Debug("received InvalidSession")
 					w.NotifyChannel.Broadcast(&NotifyPayload{
 						OpCode: FATAL_IOpCode,
-						Data: map[string]any{
-							"error": "invalid session",
-						},
+						Error:  "invalid session",
 					})
 				case "OnboardingNotFinished":
 					w.Logger.Debug("received OnboardingNotFinished")
 					w.NotifyChannel.Broadcast(&NotifyPayload{
 						OpCode: FATAL_IOpCode,
-						Data: map[string]any{
-							"error": "onboarding not finished [OnboardingNotFinished]",
-						},
+						Error:  "onboarding not finished [OnboardingNotFinished]",
 					})
-				// TODO: rethink this: ERROR vs NOTIFY
 				case "AlreadyAuthenticated":
 					w.Logger.Debug("received AlreadyAuthenticated")
 					w.NotifyChannel.Broadcast(&NotifyPayload{
 						OpCode: ERROR_IOpCode,
-						Data: map[string]any{
-							"error": "already authenticated [AlreadyAuthenticated]",
-						},
+						Error:  "already authenticated [AlreadyAuthenticated]",
 					})
 				case "Authenticated":
 					w.Logger.Debug("received Authenticated flag")
@@ -432,17 +419,14 @@ func (w *GatewayClient) readMessages() {
 				}
 
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					w.Logger.Debug("error: %v", err)
+					w.Logger.Debug("unexpected close code", zap.Error(err))
 				}
 
 				// Send whatever we have to the notify channel
 				w.Logger.Error("failed to read message: " + err.Error())
 				w.NotifyChannel.Broadcast(&NotifyPayload{
 					OpCode: ERROR_IOpCode,
-					Data: map[string]any{
-						"error": err.Error(),
-						"msg":   message,
-					},
+					Error:  err.Error(),
 				})
 
 				return
@@ -476,7 +460,10 @@ func (w *GatewayClient) handleNotify() {
 		w.Logger.Debug("restarting connection to gateway")
 
 		// Send restart opcode
-		w.Logger.Debug("sending restart opcode with timeout of", w.Deadline, "seconds")
+		w.Logger.Debug(
+			"sending restart opcode",
+			zap.Duration("deadline", w.Deadline),
+		)
 
 		w.WsConn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, "closeWsConn"), time.Now().Add(w.Deadline))
 		w.WsConn.Close()
@@ -505,6 +492,11 @@ func (w *GatewayClient) handleNotify() {
 	}
 
 	for payload := range sub {
+		// Ignore nil payloads
+		if payload == nil {
+			continue
+		}
+
 		switch payload.OpCode {
 		case KILL_IOpCode:
 			w.Logger.Debug("killing connection to gateway")
@@ -521,11 +513,11 @@ func (w *GatewayClient) handleNotify() {
 				"token": w.SessionToken.Token,
 			})
 		case ERROR_IOpCode:
-			w.Logger.Error("error from gateway: ", payload)
+			w.Logger.Error("error from gateway: ", zap.String("error", payload.Error))
 			restarter()
 			return
 		case FATAL_IOpCode:
-			w.Logger.Error("fatal error from gateway: ", payload)
+			w.Logger.Error("fatal error from gateway: ", zap.String("error", payload.Error))
 			killer()
 			return
 		case EVENT_IOpCode:
@@ -540,7 +532,7 @@ func (w *GatewayClient) handleNotify() {
 
 func (w *GatewayClient) heartbeat() {
 	hbStartTime := time.Now().Nanosecond()
-	w.Logger.Debug("starting heartbeat ", hbStartTime)
+	w.Logger.Debug("starting heartbeat ", zap.Int("start_time", hbStartTime))
 	// Create new ticker
 	ticker := time.NewTicker(w.HeartbeatInterval)
 
@@ -571,7 +563,7 @@ func (w *GatewayClient) heartbeat() {
 				continue
 			}
 
-			w.Logger.Debug("sending heartbeat", hbStartTime)
+			w.Logger.Debug("sending heartbeat", zap.Int("start_time", hbStartTime))
 			w.Send(map[string]any{
 				"type": "Ping",
 				"data": time.Now().Unix(),

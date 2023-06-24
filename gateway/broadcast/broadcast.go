@@ -9,7 +9,7 @@ import (
 
 type BroadcastServer[T any] struct {
 	// The logger to use
-	Logger *zap.SugaredLogger
+	Logger *zap.Logger
 
 	// The source channel
 	Source chan T
@@ -52,7 +52,7 @@ func (s *BroadcastServer[T]) CancelSubscription(channel <-chan T) {
 	s.removeListener <- channel
 }
 
-func NewBroadcastServer[T any](logger *zap.SugaredLogger) BroadcastServer[T] {
+func NewBroadcastServer[T any](logger *zap.Logger) BroadcastServer[T] {
 	ctx, cancel := context.WithCancel(context.Background())
 	service := BroadcastServer[T]{
 		Source:         make(chan T),
