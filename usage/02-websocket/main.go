@@ -76,13 +76,17 @@ func main() {
 		}
 	}
 
+	c.Websocket.EventHandlers.Auth = func(w *gateway.GatewayClient, e *events.Auth) {
+		fmt.Println("Auth:", e.Event.Type)
+	}
+
 	// Register ready event
 	// Here, we use advancedevents to provide a more advanced error handling system
 	c.Websocket.EventHandlers.Ready = advancedevents.NewEventHandler[events.Ready]().AddRaw(
 		advancedevents.EventFunc[events.Ready]{
 			ID: "readyEvent",
 			Handler: func(w *gateway.GatewayClient, e *events.Ready) error {
-				fmt.Println("Ready:", e.Users, e.Event.Type, e.Raw)
+				fmt.Println("Ready:", e.Users, e.Event.Type)
 
 				if e.Event.Type == "" {
 					return errors.New("ready event type is empty")

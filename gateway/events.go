@@ -22,10 +22,7 @@ func CreateEvent[T events.EventInterface](
 		return nil
 	}
 
-	rawEvent := *evtMarshalled
-	rawEvent.GetEvent().Raw = data
-
-	fn(w, &rawEvent)
+	fn(w, evtMarshalled)
 
 	return nil
 }
