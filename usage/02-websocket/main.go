@@ -148,6 +148,20 @@ func main() {
 		},
 	).Display()
 
+	// We do a bit of wrapping to demonstrate advancedevents usage
+	c.Websocket.EventHandlers.Message = advancedevents.Wrap(
+		c.Websocket.EventHandlers.Message,
+		advancedevents.NewMulti[events.Message](
+			func(w *gateway.GatewayClient, e *events.Message) {
+				fmt.Println("Multi 1")
+			},
+			func(w *gateway.GatewayClient, e *events.Message) {
+				fmt.Println("Multi 2")
+			},
+		).Display(),
+	)
+
+	// Single event style
 	c.Websocket.EventHandlers.MessageUpdate = func(w *gateway.GatewayClient, e *events.MessageUpdate) {
 		fmt.Println("MessageUpdate:", e, e.Data, e.Id, e.ChannelId, e.Data.Content, e.Data.Edited)
 	}

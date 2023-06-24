@@ -104,3 +104,22 @@ func (ef *EventHandler[T]) AddRaw(fns ...EventFunc[T]) *EventHandler[T] {
 
 	return ef
 }
+
+// Wrap a event on top of potential other non-advancedevent events and friends
+func Wrap[T events.EventInterface](evt func(w *gateway.GatewayClient, e *T), funcs ...func(w *gateway.GatewayClient, e *T)) func(w *gateway.GatewayClient, e *T) {
+	if evt == nil {
+		return func(w *gateway.GatewayClient, e *T) {
+			for _, fn := range funcs {
+				fn(w, e)
+			}
+		}
+	}
+
+	return func(w *gateway.GatewayClient, e *T) {
+		for _, fn := range funcs {
+			fn(w, e)
+		}
+
+		evt(w, e)
+	}
+}
