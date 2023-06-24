@@ -71,6 +71,8 @@ func main() {
 		panic(err)
 	}
 
+	c.Websocket.Encoding = "msgpack"
+
 	c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
 		if os.Getenv("DEBUG") == "true" {
 			fmt.Println(string(data))
@@ -87,7 +89,7 @@ func main() {
 		advancedevents.EventFunc[events.Ready]{
 			ID: "readyEvent",
 			Handler: func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Ready) error {
-				fmt.Println("Ready:", e.Users, e.Event.Type)
+				fmt.Println("Ready:", e.Event.Type, e.Members[0].JoinedAt)
 
 				if e.Event.Type == "" {
 					return errors.New("ready event type is empty")
@@ -209,8 +211,8 @@ func test1(c *client.Client, i int) {
 		time.Sleep(5 * time.Second)
 
 		// Close the client
-		fmt.Println("Closing", i)
-		c.Websocket.Close()
+		//fmt.Println("Closing", i)
+		//c.Websocket.Close()
 
 		/*time.Sleep(10 * time.Second)
 

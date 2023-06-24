@@ -168,7 +168,7 @@ type GatewayClient struct {
 }
 
 func (w *GatewayClient) GatewayURL() string {
-	gwUrl := w.WSUrl + "?v=" + w.APIVersion + "&encoding=" + w.Encoding
+	gwUrl := w.WSUrl + "?v=" + w.APIVersion + "&format=" + w.Encoding
 
 	w.Logger.Debug("gateway url: " + gwUrl)
 

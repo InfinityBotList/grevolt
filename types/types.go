@@ -1,5 +1,11 @@
 package types
 
+import (
+	"time"
+
+	"github.com/infinitybotlist/grevolt/types/flags/compat"
+)
+
 type Object map[string]any
 
 // Emoji parent, not properly generated
@@ -79,7 +85,7 @@ const (
 type InviteType string
 
 const (
-	GROUP_InviteType InviteType = "Group"
+	GROUP_InviteType  InviteType = "Group"
 	SERVER_InviteType InviteType = "Server"
 )
 
@@ -106,7 +112,7 @@ type RateLimit struct {
 	RetryAfter int64 `json:"retry_after"`
 }
 type AccountInfo struct {
-	Id string `json:"_id"`
+	Id    string `json:"_id"`
 	Email string `json:"email"`
 }
 
@@ -321,7 +327,7 @@ type IndexAccesses struct {
 	// Operations since timestamp
 	Ops uint64 `json:"ops"`
 	// Timestamp at which data keeping begun
-	Since *Object `json:"since"`
+	Since compat.Timestamp `json:"since"`
 }
 
 // Avatar attachment
@@ -532,6 +538,7 @@ type BanListResult struct {
 	// Ban objects
 	Bans []ServerBan `json:"bans"`
 }
+
 // BandcampType : Type of remote Bandcamp content
 type BandcampType string
 
@@ -619,7 +626,6 @@ type Category struct {
 
 // Composite primary key consisting of channel and user id
 
-
 // Query collection scan stats
 type CollectionScans struct {
 	// Number of total collection scans
@@ -641,25 +647,26 @@ type CollectionStats struct {
 	// Number of documents in collection
 	Count uint64 `json:"count"`
 }
+
 // ContentReportReason : Reason for reporting content (message or server)
 type ContentReportReason string
 
 // List of ContentReportReason
 const (
-	NONE_SPECIFIED_ContentReportReason ContentReportReason = "NoneSpecified"
-	ILLEGAL_ContentReportReason ContentReportReason = "Illegal"
-	ILLEGAL_GOODS_ContentReportReason ContentReportReason = "IllegalGoods"
-	ILLEGAL_EXTORTION_ContentReportReason ContentReportReason = "IllegalExtortion"
+	NONE_SPECIFIED_ContentReportReason      ContentReportReason = "NoneSpecified"
+	ILLEGAL_ContentReportReason             ContentReportReason = "Illegal"
+	ILLEGAL_GOODS_ContentReportReason       ContentReportReason = "IllegalGoods"
+	ILLEGAL_EXTORTION_ContentReportReason   ContentReportReason = "IllegalExtortion"
 	ILLEGAL_PORNOGRAPHY_ContentReportReason ContentReportReason = "IllegalPornography"
-	ILLEGAL_HACKING_ContentReportReason ContentReportReason = "IllegalHacking"
-	EXTREME_VIOLENCE_ContentReportReason ContentReportReason = "ExtremeViolence"
-	PROMOTES_HARM_ContentReportReason ContentReportReason = "PromotesHarm"
-	UNSOLICITED_SPAM_ContentReportReason ContentReportReason = "UnsolicitedSpam"
-	RAID_ContentReportReason ContentReportReason = "Raid"
-	SPAM_ABUSE_ContentReportReason ContentReportReason = "SpamAbuse"
-	SCAMS_FRAUD_ContentReportReason ContentReportReason = "ScamsFraud"
-	MALWARE_ContentReportReason ContentReportReason = "Malware"
-	HARASSMENT_ContentReportReason ContentReportReason = "Harassment"
+	ILLEGAL_HACKING_ContentReportReason     ContentReportReason = "IllegalHacking"
+	EXTREME_VIOLENCE_ContentReportReason    ContentReportReason = "ExtremeViolence"
+	PROMOTES_HARM_ContentReportReason       ContentReportReason = "PromotesHarm"
+	UNSOLICITED_SPAM_ContentReportReason    ContentReportReason = "UnsolicitedSpam"
+	RAID_ContentReportReason                ContentReportReason = "Raid"
+	SPAM_ABUSE_ContentReportReason          ContentReportReason = "SpamAbuse"
+	SCAMS_FRAUD_ContentReportReason         ContentReportReason = "ScamsFraud"
+	MALWARE_ContentReportReason             ContentReportReason = "Malware"
+	HARASSMENT_ContentReportReason          ContentReportReason = "Harassment"
 )
 
 type CreateServerResponse struct {
@@ -675,7 +682,7 @@ type CreateVoiceUserResponse struct {
 }
 
 type CreateWebhookBody struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	Avatar string `json:"avatar,omitempty"`
 }
 
@@ -820,8 +827,8 @@ type DataEditChannel struct {
 	// Whether this channel is age-restricted
 	Nsfw bool `json:"nsfw,omitempty"`
 	// Whether this channel is archived
-	Archived bool `json:"archived,omitempty"`
-	Remove []FieldsChannel `json:"remove,omitempty"`
+	Archived bool            `json:"archived,omitempty"`
+	Remove   []FieldsChannel `json:"remove,omitempty"`
 }
 
 type DataEditMessage struct {
@@ -912,7 +919,7 @@ type DataMemberEdit struct {
 	// Array of role ids
 	Roles []string `json:"roles,omitempty"`
 	// Timestamp this member is timed out until
-	Timeout *DataMemberEditTimeout `json:"timeout,omitempty"`
+	Timeout time.Time `json:"timeout,omitempty"`
 	// Fields to remove from channel object
 	Remove []FieldsMember `json:"remove,omitempty"`
 }
@@ -1026,35 +1033,39 @@ type FetchBotResponse struct {
 }
 
 type FetchServerResponse struct {
-    Server
+	Server
 }
+
 // FieldsBot : Optional fields on bot object
 type FieldsBot string
 
 // List of FieldsBot
 const (
-	TOKEN_FieldsBot FieldsBot = "Token"
+	TOKEN_FieldsBot            FieldsBot = "Token"
 	INTERACTIONS_URL_FieldsBot FieldsBot = "InteractionsURL"
 )
+
 // FieldsChannel : Optional fields on channel object
 type FieldsChannel string
 
 // List of FieldsChannel
 const (
-	DESCRIPTION_FieldsChannel FieldsChannel = "Description"
-	ICON_FieldsChannel FieldsChannel = "Icon"
+	DESCRIPTION_FieldsChannel         FieldsChannel = "Description"
+	ICON_FieldsChannel                FieldsChannel = "Icon"
 	DEFAULT_PERMISSIONS_FieldsChannel FieldsChannel = "DefaultPermissions"
 )
+
 // FieldsMember : Optional fields on server member object
 type FieldsMember string
 
 // List of FieldsMember
 const (
 	NICKNAME_FieldsMember FieldsMember = "Nickname"
-	AVATAR_FieldsMember FieldsMember = "Avatar"
-	ROLES_FieldsMember FieldsMember = "Roles"
-	TIMEOUT_FieldsMember FieldsMember = "Timeout"
+	AVATAR_FieldsMember   FieldsMember = "Avatar"
+	ROLES_FieldsMember    FieldsMember = "Roles"
+	TIMEOUT_FieldsMember  FieldsMember = "Timeout"
 )
+
 // FieldsRole : Optional fields on server object
 type FieldsRole string
 
@@ -1062,28 +1073,30 @@ type FieldsRole string
 const (
 	COLOUR_FieldsRole FieldsRole = "Colour"
 )
+
 // FieldsServer : Optional fields on server object
 type FieldsServer string
 
 // List of FieldsServer
 const (
-	DESCRIPTION_FieldsServer FieldsServer = "Description"
-	CATEGORIES_FieldsServer FieldsServer = "Categories"
+	DESCRIPTION_FieldsServer     FieldsServer = "Description"
+	CATEGORIES_FieldsServer      FieldsServer = "Categories"
 	SYSTEM_MESSAGES_FieldsServer FieldsServer = "SystemMessages"
-	ICON_FieldsServer FieldsServer = "Icon"
-	BANNER_FieldsServer FieldsServer = "Banner"
+	ICON_FieldsServer            FieldsServer = "Icon"
+	BANNER_FieldsServer          FieldsServer = "Banner"
 )
+
 // FieldsUser : Optional fields on user object
 type FieldsUser string
 
 // List of FieldsUser
 const (
-	AVATAR_FieldsUser FieldsUser = "Avatar"
-	STATUS_TEXT_FieldsUser FieldsUser = "StatusText"
-	STATUS_PRESENCE_FieldsUser FieldsUser = "StatusPresence"
-	PROFILE_CONTENT_FieldsUser FieldsUser = "ProfileContent"
+	AVATAR_FieldsUser             FieldsUser = "Avatar"
+	STATUS_TEXT_FieldsUser        FieldsUser = "StatusText"
+	STATUS_PRESENCE_FieldsUser    FieldsUser = "StatusPresence"
+	PROFILE_CONTENT_FieldsUser    FieldsUser = "ProfileContent"
 	PROFILE_BACKGROUND_FieldsUser FieldsUser = "ProfileBackground"
-	DISPLAY_NAME_FieldsUser FieldsUser = "DisplayName"
+	DISPLAY_NAME_FieldsUser       FieldsUser = "DisplayName"
 )
 
 // Representation of a File on Revolt Generated by Autumn
@@ -1103,10 +1116,10 @@ type File struct {
 	// Whether this file was deleted
 	Deleted bool `json:"deleted,omitempty"`
 	// Whether this file was reported
-	Reported bool `json:"reported,omitempty"`
+	Reported  bool   `json:"reported,omitempty"`
 	MessageId string `json:"message_id,omitempty"`
-	UserId string `json:"user_id,omitempty"`
-	ServerId string `json:"server_id,omitempty"`
+	UserId    string `json:"user_id,omitempty"`
+	ServerId  string `json:"server_id,omitempty"`
 	// Id of the object this file is associated with
 	ObjectId string `json:"object_id,omitempty"`
 }
@@ -1127,12 +1140,13 @@ type Image struct {
 	// Positioning and size
 	Size *ImageSize `json:"size"`
 }
+
 // ImageSize : Image positioning and size
 type ImageSize string
 
 // List of ImageSize
 const (
-	LARGE_ImageSize ImageSize = "Large"
+	LARGE_ImageSize   ImageSize = "Large"
 	PREVIEW_ImageSize ImageSize = "Preview"
 )
 
@@ -1162,9 +1176,6 @@ type Interactions struct {
 
 // Representation of an invite to a channel on Revolt
 
-
-
-
 // Histogram entry
 type LatencyHistogramEntry struct {
 	// Time
@@ -1182,6 +1193,7 @@ type LatencyStats struct {
 	// Histogram representation of latency data
 	Histogram []LatencyHistogramEntry `json:"histogram"`
 }
+
 // LightspeedType : Type of remote Lightspeed.tv content
 type LightspeedType string
 
@@ -1205,7 +1217,7 @@ type Member struct {
 	// Unique member id
 	Id *MemberId `json:"_id"`
 	// Time at which this user joined the server
-	JoinedAt string `json:"joined_at"`
+	JoinedAt compat.Timestamp `json:"joined_at,omitempty"`
 	// Member's nickname
 	Nickname string `json:"nickname,omitempty"`
 	// Avatar attachment
@@ -1213,7 +1225,7 @@ type Member struct {
 	// Member's roles
 	Roles []string `json:"roles,omitempty"`
 	// Timestamp this member is timed out until
-	Timeout *MemberTimeout `json:"timeout,omitempty"`
+	Timeout compat.Timestamp `json:"timeout,omitempty"`
 }
 
 // Composite primary key consisting of server and user id
@@ -1250,7 +1262,7 @@ type Message struct {
 	// Array of attachments
 	Attachments []*File `json:"attachments,omitempty"`
 	// Time at which this message was last edited
-	Edited string `json:"edited,omitempty"`
+	Edited compat.Timestamp `json:"edited,omitempty"`
 	// Attached embeds to this message
 	Embeds []Embed `json:"embeds,omitempty"`
 	// Array of user ids mentioned in this message
@@ -1276,25 +1288,27 @@ type MessageQuery struct {
 	// Search query
 	Query string `json:"query,omitempty"`
 }
+
 // MessageSort : Sort used for retrieving messages
 type MessageSort string
 
 // List of MessageSort
 const (
 	RELEVANCE_MessageSort MessageSort = "Relevance"
-	LATEST_MessageSort MessageSort = "Latest"
-	OLDEST_MessageSort MessageSort = "Oldest"
+	LATEST_MessageSort    MessageSort = "Latest"
+	OLDEST_MessageSort    MessageSort = "Oldest"
 )
 
 // Information about the webhook bundled with Message
 type MessageWebhook struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	Avatar string `json:"avatar,omitempty"`
 }
 
 // Metadata associated with file
 type Metadata struct {
 }
+
 // MfaMethod : MFA method
 type MfaMethod string
 
@@ -1302,7 +1316,7 @@ type MfaMethod string
 const (
 	PASSWORD_MfaMethod MfaMethod = "Password"
 	RECOVERY_MfaMethod MfaMethod = "Recovery"
-	TOTP_MfaMethod MfaMethod = "Totp"
+	TOTP_MfaMethod     MfaMethod = "Totp"
 )
 
 // MFA response
@@ -1326,12 +1340,12 @@ type MfaTicket struct {
 }
 
 type MultiFactorStatus struct {
-	EmailOtp bool `json:"email_otp"`
+	EmailOtp        bool `json:"email_otp"`
 	TrustedHandover bool `json:"trusted_handover"`
-	EmailMfa bool `json:"email_mfa"`
-	TotpMfa bool `json:"totp_mfa"`
-	SecurityKeyMfa bool `json:"security_key_mfa"`
-	RecoveryActive bool `json:"recovery_active"`
+	EmailMfa        bool `json:"email_mfa"`
+	TotpMfa         bool `json:"totp_mfa"`
+	SecurityKeyMfa  bool `json:"security_key_mfa"`
+	RecoveryActive  bool `json:"recovery_active"`
 }
 
 type MutualResponse struct {
@@ -1404,52 +1418,54 @@ type OwnedBotsResponse struct {
 	// User objects
 	Users []User `json:"users"`
 }
+
 // Permission : Permission value on Revolt  This should be restricted to the lower 52 bits to prevent any potential issues with Javascript. Also leave empty spaces for future permission flags to be added.
 type PermissionFriendly string
 
 // List of Permission
 const (
-	MANAGE_CHANNEL_PermissionFriendly PermissionFriendly = "ManageChannel"
-	MANAGE_SERVER_PermissionFriendly PermissionFriendly = "ManageServer"
-	MANAGE_PERMISSIONS_PermissionFriendly PermissionFriendly = "ManagePermissions"
-	MANAGE_ROLE_PermissionFriendly PermissionFriendly = "ManageRole"
+	MANAGE_CHANNEL_PermissionFriendly       PermissionFriendly = "ManageChannel"
+	MANAGE_SERVER_PermissionFriendly        PermissionFriendly = "ManageServer"
+	MANAGE_PERMISSIONS_PermissionFriendly   PermissionFriendly = "ManagePermissions"
+	MANAGE_ROLE_PermissionFriendly          PermissionFriendly = "ManageRole"
 	MANAGE_CUSTOMISATION_PermissionFriendly PermissionFriendly = "ManageCustomisation"
-	KICK_MEMBERS_PermissionFriendly PermissionFriendly = "KickMembers"
-	BAN_MEMBERS_PermissionFriendly PermissionFriendly = "BanMembers"
-	TIMEOUT_MEMBERS_PermissionFriendly PermissionFriendly = "TimeoutMembers"
-	ASSIGN_ROLES_PermissionFriendly PermissionFriendly = "AssignRoles"
-	CHANGE_NICKNAME_PermissionFriendly PermissionFriendly = "ChangeNickname"
-	MANAGE_NICKNAMES_PermissionFriendly PermissionFriendly = "ManageNicknames"
-	CHANGE_AVATAR_PermissionFriendly PermissionFriendly = "ChangeAvatar"
-	REMOVE_AVATARS_PermissionFriendly PermissionFriendly = "RemoveAvatars"
-	VIEW_CHANNEL_PermissionFriendly PermissionFriendly = "ViewChannel"
+	KICK_MEMBERS_PermissionFriendly         PermissionFriendly = "KickMembers"
+	BAN_MEMBERS_PermissionFriendly          PermissionFriendly = "BanMembers"
+	TIMEOUT_MEMBERS_PermissionFriendly      PermissionFriendly = "TimeoutMembers"
+	ASSIGN_ROLES_PermissionFriendly         PermissionFriendly = "AssignRoles"
+	CHANGE_NICKNAME_PermissionFriendly      PermissionFriendly = "ChangeNickname"
+	MANAGE_NICKNAMES_PermissionFriendly     PermissionFriendly = "ManageNicknames"
+	CHANGE_AVATAR_PermissionFriendly        PermissionFriendly = "ChangeAvatar"
+	REMOVE_AVATARS_PermissionFriendly       PermissionFriendly = "RemoveAvatars"
+	VIEW_CHANNEL_PermissionFriendly         PermissionFriendly = "ViewChannel"
 	READ_MESSAGE_HISTORY_PermissionFriendly PermissionFriendly = "ReadMessageHistory"
-	SEND_MESSAGE_PermissionFriendly PermissionFriendly = "SendMessage"
-	MANAGE_MESSAGES_PermissionFriendly PermissionFriendly = "ManageMessages"
-	MANAGE_WEBHOOKS_PermissionFriendly PermissionFriendly = "ManageWebhooks"
-	INVITE_OTHERS_PermissionFriendly PermissionFriendly = "InviteOthers"
-	SEND_EMBEDS_PermissionFriendly PermissionFriendly = "SendEmbeds"
-	UPLOAD_FILES_PermissionFriendly PermissionFriendly = "UploadFiles"
-	MASQUERADE_PermissionFriendly PermissionFriendly = "Masquerade"
-	REACT_PermissionFriendly PermissionFriendly = "React"
-	CONNECT_PermissionFriendly PermissionFriendly = "Connect"
-	SPEAK_PermissionFriendly PermissionFriendly = "Speak"
-	VIDEO_PermissionFriendly PermissionFriendly = "Video"
-	MUTE_MEMBERS_PermissionFriendly PermissionFriendly = "MuteMembers"
-	DEAFEN_MEMBERS_PermissionFriendly PermissionFriendly = "DeafenMembers"
-	MOVE_MEMBERS_PermissionFriendly PermissionFriendly = "MoveMembers"
-	GRANT_ALL_SAFE_PermissionFriendly PermissionFriendly = "GrantAllSafe"
-	GRANT_ALL_PermissionFriendly PermissionFriendly = "GrantAll"
+	SEND_MESSAGE_PermissionFriendly         PermissionFriendly = "SendMessage"
+	MANAGE_MESSAGES_PermissionFriendly      PermissionFriendly = "ManageMessages"
+	MANAGE_WEBHOOKS_PermissionFriendly      PermissionFriendly = "ManageWebhooks"
+	INVITE_OTHERS_PermissionFriendly        PermissionFriendly = "InviteOthers"
+	SEND_EMBEDS_PermissionFriendly          PermissionFriendly = "SendEmbeds"
+	UPLOAD_FILES_PermissionFriendly         PermissionFriendly = "UploadFiles"
+	MASQUERADE_PermissionFriendly           PermissionFriendly = "Masquerade"
+	REACT_PermissionFriendly                PermissionFriendly = "React"
+	CONNECT_PermissionFriendly              PermissionFriendly = "Connect"
+	SPEAK_PermissionFriendly                PermissionFriendly = "Speak"
+	VIDEO_PermissionFriendly                PermissionFriendly = "Video"
+	MUTE_MEMBERS_PermissionFriendly         PermissionFriendly = "MuteMembers"
+	DEAFEN_MEMBERS_PermissionFriendly       PermissionFriendly = "DeafenMembers"
+	MOVE_MEMBERS_PermissionFriendly         PermissionFriendly = "MoveMembers"
+	GRANT_ALL_SAFE_PermissionFriendly       PermissionFriendly = "GrantAllSafe"
+	GRANT_ALL_PermissionFriendly            PermissionFriendly = "GrantAll"
 )
+
 // Presence : Presence status
 type Presence string
 
 // List of Presence
 const (
-	ONLINE_Presence Presence = "Online"
-	IDLE_Presence Presence = "Idle"
-	FOCUS_Presence Presence = "Focus"
-	BUSY_Presence Presence = "Busy"
+	ONLINE_Presence    Presence = "Online"
+	IDLE_Presence      Presence = "Idle"
+	FOCUS_Presence     Presence = "Focus"
+	BUSY_Presence      Presence = "Busy"
 	INVISIBLE_Presence Presence = "Invisible"
 )
 
@@ -1473,20 +1489,21 @@ type QueryExecStats struct {
 
 // Relationship entry indicating current status with other user
 type Relationship struct {
-	Id string `json:"_id"`
+	Id     string              `json:"_id"`
 	Status *RelationshipStatus `json:"status"`
 }
+
 // RelationshipStatus : User's relationship with another user (or themselves)
 type RelationshipStatus string
 
 // List of RelationshipStatus
 const (
-	NONE_RelationshipStatus RelationshipStatus = "None"
-	USER_RelationshipStatus RelationshipStatus = "User"
-	FRIEND_RelationshipStatus RelationshipStatus = "Friend"
-	OUTGOING_RelationshipStatus RelationshipStatus = "Outgoing"
-	INCOMING_RelationshipStatus RelationshipStatus = "Incoming"
-	BLOCKED_RelationshipStatus RelationshipStatus = "Blocked"
+	NONE_RelationshipStatus          RelationshipStatus = "None"
+	USER_RelationshipStatus          RelationshipStatus = "User"
+	FRIEND_RelationshipStatus        RelationshipStatus = "Friend"
+	OUTGOING_RelationshipStatus      RelationshipStatus = "Outgoing"
+	INCOMING_RelationshipStatus      RelationshipStatus = "Incoming"
+	BLOCKED_RelationshipStatus       RelationshipStatus = "Blocked"
 	BLOCKED_OTHER_RelationshipStatus RelationshipStatus = "BlockedOther"
 )
 
@@ -1515,12 +1532,13 @@ type Report struct {
 // Status of the report
 type ReportStatus struct {
 }
+
 // ReportStatusString : Just the status of the report
 type ReportStatusString string
 
 // List of ReportStatusString
 const (
-	CREATED_ReportStatusString ReportStatusString = "Created"
+	CREATED_ReportStatusString  ReportStatusString = "Created"
 	REJECTED_ReportStatusString ReportStatusString = "Rejected"
 	RESOLVED_ReportStatusString ReportStatusString = "Resolved"
 )
@@ -1585,12 +1603,12 @@ type Role struct {
 
 // Representation of a text embed before it is sent.
 type SendableEmbed struct {
-	IconUrl string `json:"icon_url,omitempty"`
-	Url string `json:"url,omitempty"`
-	Title string `json:"title,omitempty"`
+	IconUrl     string `json:"icon_url,omitempty"`
+	Url         string `json:"url,omitempty"`
+	Title       string `json:"title,omitempty"`
 	Description string `json:"description,omitempty"`
-	Media string `json:"media,omitempty"`
-	Colour string `json:"colour,omitempty"`
+	Media       string `json:"media,omitempty"`
+	Colour      string `json:"colour,omitempty"`
 }
 
 // Representation of a server on Revolt
@@ -1636,7 +1654,7 @@ type ServerBan struct {
 }
 
 type SessionInfo struct {
-	Id string `json:"_id"`
+	Id   string `json:"_id"`
 	Name string `json:"name"`
 }
 
@@ -1685,14 +1703,15 @@ type SystemMessageChannels struct {
 	// ID of channel to send user banned messages in
 	UserBanned string `json:"user_banned,omitempty"`
 }
+
 // TwitchType : Type of remote Twitch content
 type TwitchType string
 
 // List of TwitchType
 const (
 	CHANNEL_TwitchType TwitchType = "Channel"
-	VIDEO_TwitchType TwitchType = "Video"
-	CLIP_TwitchType TwitchType = "Clip"
+	VIDEO_TwitchType   TwitchType = "Video"
+	CLIP_TwitchType    TwitchType = "Clip"
 )
 
 // Representiation of a User on Revolt.
@@ -1726,15 +1745,16 @@ type User struct {
 	// Whether this user is currently online
 	Online bool `json:"online,omitempty"`
 }
+
 // UserPermission : User permission definitions
 type UserPermission string
 
 // List of UserPermission
 const (
-	ACCESS_UserPermission UserPermission = "Access"
+	ACCESS_UserPermission       UserPermission = "Access"
 	VIEW_PROFILE_UserPermission UserPermission = "ViewProfile"
 	SEND_MESSAGE_UserPermission UserPermission = "SendMessage"
-	INVITE_UserPermission UserPermission = "Invite"
+	INVITE_UserPermission       UserPermission = "Invite"
 )
 
 // User's profile
@@ -1751,18 +1771,19 @@ type UserProfileData struct {
 	// Attachment Id for background
 	Background string `json:"background,omitempty"`
 }
+
 // UserReportReason : Reason for reporting a user
 type UserReportReason string
 
 // List of UserReportReason
 const (
-	NONE_SPECIFIED_UserReportReason UserReportReason = "NoneSpecified"
-	UNSOLICITED_SPAM_UserReportReason UserReportReason = "UnsolicitedSpam"
-	SPAM_ABUSE_UserReportReason UserReportReason = "SpamAbuse"
+	NONE_SPECIFIED_UserReportReason        UserReportReason = "NoneSpecified"
+	UNSOLICITED_SPAM_UserReportReason      UserReportReason = "UnsolicitedSpam"
+	SPAM_ABUSE_UserReportReason            UserReportReason = "SpamAbuse"
 	INAPPROPRIATE_PROFILE_UserReportReason UserReportReason = "InappropriateProfile"
-	IMPERSONATION_UserReportReason UserReportReason = "Impersonation"
-	BAN_EVASION_UserReportReason UserReportReason = "BanEvasion"
-	UNDERAGE_UserReportReason UserReportReason = "Underage"
+	IMPERSONATION_UserReportReason         UserReportReason = "Impersonation"
+	BAN_EVASION_UserReportReason           UserReportReason = "BanEvasion"
+	UNDERAGE_UserReportReason              UserReportReason = "Underage"
 )
 
 // User's active status
@@ -1795,8 +1816,8 @@ type VoiceFeature struct {
 // Web Push subscription
 type WebPushSubscription struct {
 	Endpoint string `json:"endpoint"`
-	P256dh string `json:"p256dh"`
-	Auth string `json:"auth"`
+	P256dh   string `json:"p256dh"`
+	Auth     string `json:"auth"`
 }
 
 // Webhook

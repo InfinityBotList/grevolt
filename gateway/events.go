@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"errors"
+
 	"github.com/infinitybotlist/grevolt/types/events"
 	"go.uber.org/zap"
 )
@@ -21,7 +23,7 @@ func CreateEvent[T events.EventInterface](
 	err := w.Decode(data, &evtMarshalled)
 
 	if err != nil {
-		return err
+		return errors.New("decode error: " + err.Error())
 	}
 
 	if fn == nil {
@@ -216,6 +218,7 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		w.Logger.Error(
 			"Event handling failed",
 			zap.Error(err),
+			zap.String("type", typ),
 		)
 	}
 }

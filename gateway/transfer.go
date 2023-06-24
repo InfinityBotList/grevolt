@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/vmihailenco/msgpack/v5"
+	"go.uber.org/zap"
 )
 
 func (w *GatewayClient) Decode(data []byte, dst any) error {
@@ -16,10 +17,23 @@ func (w *GatewayClient) Decode(data []byte, dst any) error {
 		return json.Unmarshal(data, &dst)
 	case "msgpack":
 		// Create buffer
-		buf := bytes.NewReader(data)
-		dec := msgpack.NewDecoder(buf)
-		dec.SetCustomStructTag("json")
-		return dec.Decode(&dst)
+		buf := bytes.NewBuffer(data)
+
+		// Decode msgpack
+		decoded := msgpack.NewDecoder(buf)
+
+		decoded.SetCustomStructTag("json")
+
+		err := decoded.Decode(&dst)
+
+		if err != nil {
+			w.Logger.Error("Decoding msgpack data", zap.Any("err", err), zap.Any("dst", dst))
+		}
+
+		//dec := msgpack.NewDecoder(buf)
+		//dec.SetCustomStructTag("json")
+		//return dec.Decode(&dst)
+		return nil
 	}
 
 	return nil
@@ -38,8 +52,8 @@ func (w *GatewayClient) Encode(data any) ([]byte, error) {
 		return jsonData, nil
 	case "msgpack":
 		// Marshal msgpack
-		writer := bytes.NewBuffer([]byte{})
-		enc := msgpack.NewEncoder(writer)
+		var buf bytes.Buffer
+		enc := msgpack.NewEncoder(&buf)
 		enc.SetCustomStructTag("json")
 		err := enc.Encode(data)
 
@@ -47,7 +61,7 @@ func (w *GatewayClient) Encode(data any) ([]byte, error) {
 			return nil, errors.New("failed to marshal msgpack: " + err.Error())
 		}
 
-		msgpackData := writer.Bytes()
+		msgpackData := buf.Bytes()
 		return msgpackData, nil
 	}
 
@@ -70,6 +84,8 @@ func (w *GatewayClient) Send(data map[string]any) error {
 	if err != nil {
 		return errors.New("failed to encode data: " + err.Error())
 	}
+
+	w.Logger.Debug("Sending data", zap.Any("data", data), zap.Binary("sendBytes", sendBytes))
 
 	switch w.Encoding {
 	case "json":
