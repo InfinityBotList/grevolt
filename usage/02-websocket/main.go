@@ -82,7 +82,7 @@ func main() {
 		advancedevents.EventFunc[events.Ready]{
 			ID: "readyEvent",
 			Handler: func(w *gateway.GatewayClient, e *events.Ready) error {
-				fmt.Println("Ready:", e.Users[0], e.Event.Type)
+				fmt.Println("Ready:", e.Users, e.Event.Type, e.Raw)
 
 				if e.Event.Type == "" {
 					return errors.New("ready event type is empty")

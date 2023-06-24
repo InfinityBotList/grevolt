@@ -22,7 +22,10 @@ func CreateEvent[T events.EventInterface](
 		return nil
 	}
 
-	fn(w, evtMarshalled)
+	rawEvent := *evtMarshalled
+	rawEvent.GetEvent().Raw = data
+
+	fn(w, &rawEvent)
 
 	return nil
 }
@@ -117,6 +120,34 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		err = CreateEvent[events.ChannelStopTyping](w, event, w.EventHandlers.ChannelStopTyping)
 	case "ChannelAck":
 		err = CreateEvent[events.ChannelAck](w, event, w.EventHandlers.ChannelAck)
+	case "ServerCreate":
+		err = CreateEvent[events.ServerCreate](w, event, w.EventHandlers.ServerCreate)
+	case "ServerUpdate":
+		err = CreateEvent[events.ServerUpdate](w, event, w.EventHandlers.ServerUpdate)
+	case "ServerDelete":
+		err = CreateEvent[events.ServerDelete](w, event, w.EventHandlers.ServerDelete)
+	case "ServerMemberUpdate":
+		err = CreateEvent[events.ServerMemberUpdate](w, event, w.EventHandlers.ServerMemberUpdate)
+	case "ServerMemberJoin":
+		err = CreateEvent[events.ServerMemberJoin](w, event, w.EventHandlers.ServerMemberJoin)
+	case "ServerMemberLeave":
+		err = CreateEvent[events.ServerMemberLeave](w, event, w.EventHandlers.ServerMemberLeave)
+	case "ServerRoleUpdate":
+		err = CreateEvent[events.ServerRoleUpdate](w, event, w.EventHandlers.ServerRoleUpdate)
+	case "ServerRoleDelete":
+		err = CreateEvent[events.ServerRoleDelete](w, event, w.EventHandlers.ServerRoleDelete)
+	case "UserUpdate":
+		err = CreateEvent[events.UserUpdate](w, event, w.EventHandlers.UserUpdate)
+	case "UserRelationship":
+		err = CreateEvent[events.UserRelationship](w, event, w.EventHandlers.UserRelationship)
+	case "UserSettingsUpdate":
+		err = CreateEvent[events.UserSettingsUpdate](w, event, w.EventHandlers.UserSettingsUpdate)
+	case "UserPlatformWipe":
+		err = CreateEvent[events.UserPlatformWipe](w, event, w.EventHandlers.UserPlatformWipe)
+	case "EmojiCreate":
+		err = CreateEvent[events.EmojiCreate](w, event, w.EventHandlers.EmojiCreate)
+	case "EmojiDelete":
+		err = CreateEvent[events.EmojiDelete](w, event, w.EventHandlers.EmojiDelete)
 	}
 
 	if err != nil {
@@ -125,6 +156,8 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 }
 
 // Event handler for the websocket
+//
+// See https://github.com/revoltchat/backend/tree/master/crates/quark/src/events for event list
 type EventHandlers struct {
 	// Not an actual revolt event, this is a sink that allows you to provide a function for raw event handling
 	RawSinkFunc func(w *GatewayClient, data []byte, typ string)
@@ -201,4 +234,59 @@ type EventHandlers struct {
 	//
 	// <official docs say the above, but it should be 'A user' instead of 'you'?>
 	ChannelAck func(w *GatewayClient, e *events.ChannelAck)
+
+	// Server created, the event object has the same schema as the SERVER object in the API with the addition of an event type.
+	ServerCreate func(w *GatewayClient, e *events.ServerCreate)
+
+	// Server details updated.
+	ServerUpdate func(w *GatewayClient, e *events.ServerUpdate)
+
+	// Server has been deleted.
+	ServerDelete func(w *GatewayClient, e *events.ServerDelete)
+
+	// Server member details updated.
+	ServerMemberUpdate func(w *GatewayClient, e *events.ServerMemberUpdate)
+
+	// A user has joined the group.
+	//
+	// <this should be server, not group>
+	ServerMemberJoin func(w *GatewayClient, e *events.ServerMemberJoin)
+
+	// A user has left the group.
+	//
+	// <this should be server, not group>
+	ServerMemberLeave func(w *GatewayClient, e *events.ServerMemberLeave)
+
+	// Server role has been updated or created.
+	ServerRoleUpdate func(w *GatewayClient, e *events.ServerRoleUpdate)
+
+	// Server role has been deleted.
+	ServerRoleDelete func(w *GatewayClient, e *events.ServerRoleDelete)
+
+	// User has been updated.
+	UserUpdate func(w *GatewayClient, e *events.UserUpdate)
+
+	// Your relationship with another user has changed.
+	UserRelationship func(w *GatewayClient, e *events.UserRelationship)
+
+	// Settings updated remotely
+	// <undocumented, will likely be available in a future release>
+	UserSettingsUpdate func(w *GatewayClient, e *events.UserSettingsUpdate)
+
+	// User has been platform banned or deleted their account
+	//
+	// Clients should remove the following associated data:
+	//   - Messages
+	//   - DM Channels
+	//   - Relationships
+	//   - Server Memberships
+	//
+	// User flags are specified to explain why a wipe is occurring though not all reasons will necessarily ever appear.
+	UserPlatformWipe func(w *GatewayClient, e *events.UserPlatformWipe)
+
+	// Emoji created, the event object has the same schema as the Emoji object in the API with the addition of an event type.
+	EmojiCreate func(w *GatewayClient, e *events.EmojiCreate)
+
+	// Emoji has been deleted.
+	EmojiDelete func(w *GatewayClient, e *events.EmojiDelete)
 }
