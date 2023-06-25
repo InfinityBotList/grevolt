@@ -1,4 +1,4 @@
-package clientapi
+package rest
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/infinitybotlist/grevolt/rest/clientapi/ratelimits"
+	"github.com/infinitybotlist/grevolt/rest/ratelimits"
 	"github.com/infinitybotlist/grevolt/rest/restconfig"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/version"

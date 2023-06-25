@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/infinitybotlist/grevolt/client/auth"
-	"github.com/infinitybotlist/grevolt/rest/clientapi/ratelimits"
+	"github.com/infinitybotlist/grevolt/rest/ratelimits"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/sethgrid/pester"
 	"go.uber.org/zap"

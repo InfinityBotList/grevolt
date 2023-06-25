@@ -1,7 +1,7 @@
 package restcli
 
 import (
-	"github.com/infinitybotlist/grevolt/rest/clientapi"
+	"github.com/infinitybotlist/grevolt/rest"
 	"github.com/infinitybotlist/grevolt/types"
 )
 
@@ -12,7 +12,7 @@ import (
 // <api uses SetRolePermission but this also exists on server information>
 func (c *RestClient) ChannelSetRolePermission(target, roleId string, override *types.PatchOverrideField) (*types.Channel, *types.APIError, error) {
 	var ch *types.Channel
-	apiErr, err := clientapi.NewReq(&c.Config).Put("/channels/" + target + "/permissions/" + roleId).Json(override).DoAndMarshal(&ch)
+	apiErr, err := rest.NewReq(&c.Config).Put("/channels/" + target + "/permissions/" + roleId).Json(override).DoAndMarshal(&ch)
 	return ch, apiErr, err
 }
 
@@ -23,6 +23,6 @@ func (c *RestClient) ChannelSetRolePermission(target, roleId string, override *t
 // <api uses SetDefaultPermission but this also exists on server information>
 func (c *RestClient) ChannelSetDefaultPermission(target string, override *types.PatchOverrideField) (*types.Channel, *types.APIError, error) {
 	var ch *types.Channel
-	apiErr, err := clientapi.NewReq(&c.Config).Put("/channels/" + target + "/permissions/default").Json(override).DoAndMarshal(&ch)
+	apiErr, err := rest.NewReq(&c.Config).Put("/channels/" + target + "/permissions/default").Json(override).DoAndMarshal(&ch)
 	return ch, apiErr, err
 }
