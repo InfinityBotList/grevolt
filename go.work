@@ -1,0 +1,7 @@
+go 1.20
+
+use . 
+use testprogs/01-fetchself
+use testprogs/02-websocket
+use testprogs/02-testrl
+use usage/01-basics

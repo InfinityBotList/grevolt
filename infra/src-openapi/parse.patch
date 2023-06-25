@@ -1,0 +1,107 @@
+package types
+
+type Object map[string]any
+
+// Emoji parent, not properly generated
+type EmojiParent struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
+}
+
+// API error, not properly generated
+type APIError map[string]any
+
+func (e APIError) Type() string {
+	typ, ok := e["type"]
+
+	if !ok {
+		return "Unknown"
+	}
+
+	// Check if typ is a string
+	if _, ok := typ.(string); !ok {
+		return "Unknown"
+	}
+
+	return typ.(string)
+}
+
+// Channel struct.
+type Channel struct {
+	Id                 string                    `json:"_id,omitempty"`
+	ChannelType        ChannelType               `json:"channel_type,omitempty"`
+	UserId             string                    `json:"user,omitempty"`
+	Nonce              string                    `json:"nonce,omitempty"`
+	Active             bool                      `json:"active,omitempty"`
+	Recipients         []string                  `json:"recipients,omitempty"`
+	LastMessageID      string                    `json:"last_message_id,omitempty"`
+	Name               string                    `json:"name,omitempty"`
+	OwnerId            string                    `json:"owner,omitempty"`
+	Description        string                    `json:"description,omitempty"`
+	Icon               *File                     `json:"icon,omitempty"`
+	DefaultPermissions *OverrideField            `json:"default_permissions,omitempty"`
+	RolePermissions    map[string]*OverrideField `json:"role_permissions,omitempty"`
+	Permissions        uint                      `json:"permissions,omitempty"`
+	NSFW               bool                      `json:"nsfw,omitempty"`
+}
+
+type PatchOverrideField struct {
+	Permissions *Override `json:"permissions"`
+}
+
+type ChannelList []Channel
+
+type ChannelType string
+
+// List of ChannelType
+const (
+	TEXT_ChannelType  ChannelType = "Text"
+	VOICE_ChannelType ChannelType = "Voice"
+)
+
+type DataInviteBot struct {
+	// Server Id
+	Server string `json:"server,omitempty"`
+	// Group id
+	Group string `json:"group,omitempty"`
+}
+
+// FieldsWebhook : Optional fields on webhook object
+//
+// <undocumented, from https://github.com/revoltchat/backend/blob/master/crates/core/database/src/models/channel_webhooks/ops/mongodb.rs#L71>
+type FieldsWebhook string
+
+const (
+	AVATAR_FieldsWebhook FieldsWebhook = "Avatar"
+)
+
+// InviteType : The type of an invite
+type InviteType string
+
+const (
+	GROUP_InviteType InviteType = "Group"
+	SERVER_InviteType InviteType = "Server"
+)
+
+// Representation of an created invite on Revolt
+type CreateInviteResponseInvite struct {
+	// The Id of the invite
+	Id string `json:"_id,omitempty"`
+
+	// The type of the invite
+	Type InviteType `json:"type,omitempty"`
+
+	// The creator of the invite
+	Creator string `json:"creator,omitempty"`
+
+	// The channel the invite is for
+	Channel string `json:"channel,omitempty"`
+
+	// The server the invite points to if it is a server invite
+	Server string `json:"server,omitempty"`
+}
+
+// Rate limit struct
+type RateLimit struct {
+	RetryAfter int64 `json:"retry_after"`
+}
