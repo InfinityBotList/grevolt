@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/infinitybotlist/grevolt/client/auth"
+	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/gateway/broadcast"
 	"github.com/infinitybotlist/grevolt/version"
 	"go.uber.org/zap"

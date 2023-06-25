@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/infinitybotlist/grevolt/client/auth"
+	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/rest/ratelimits"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/version"

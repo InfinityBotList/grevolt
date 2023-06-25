@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/infinitybotlist/grevolt/client/auth"
+	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/rest"
 	"github.com/infinitybotlist/grevolt/rest/restcli"

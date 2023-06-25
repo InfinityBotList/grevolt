@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/client"
-	"github.com/infinitybotlist/grevolt/client/auth"
 	"gopkg.in/yaml.v3"
 )
 
