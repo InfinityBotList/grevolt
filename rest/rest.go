@@ -17,7 +17,7 @@ import (
 )
 
 // Makes a request to the API
-func (r Request[T]) Request(config *RestConfig) (*Response[T], error) {
+func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 	if r.Method == "" {
 		r.Method = GET
 	}
@@ -119,10 +119,7 @@ func (r Request[T]) Request(config *RestConfig) (*Response[T], error) {
 		}
 	}
 
-	return &Response[T]{
-		Request:  &r,
-		Response: resp,
-	}, nil
+	return resp, nil
 }
 
 // Executes the request and unmarshals the response body if the response is OK otherwise returns error
@@ -145,12 +142,12 @@ func (r Request[T]) With(config *RestConfig) (*T, error) {
 		return nil, err
 	}
 
-	if resp.Response.StatusCode == http.StatusOK || resp.Response.StatusCode == http.StatusCreated {
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
 		var v T
 
 		if _, ok := any(v).(Bytes); ok {
 			// We have byte as type, just read response as body
-			body, err := io.ReadAll(resp.Response.Body)
+			body, err := io.ReadAll(resp.Body)
 
 			if err != nil {
 				return nil, err
@@ -163,7 +160,7 @@ func (r Request[T]) With(config *RestConfig) (*T, error) {
 			return &res, nil
 		}
 
-		err = json.NewDecoder(resp.Response.Body).Decode(&v)
+		err = json.NewDecoder(resp.Body).Decode(&v)
 
 		if err != nil {
 			return nil, err
@@ -171,9 +168,9 @@ func (r Request[T]) With(config *RestConfig) (*T, error) {
 
 		return &v, nil
 	} else {
-		if resp.Response.StatusCode == 401 {
+		if resp.StatusCode == 401 {
 			// Try and read body
-			body := resp.Response.Body
+			body := resp.Body
 
 			if body == nil {
 				return nil, fmt.Errorf("unauthorized")
@@ -189,7 +186,7 @@ func (r Request[T]) With(config *RestConfig) (*T, error) {
 		}
 
 		var vErr types.APIError
-		err = json.NewDecoder(resp.Response.Body).Decode(&vErr)
+		err = json.NewDecoder(resp.Body).Decode(&vErr)
 
 		if err != nil {
 			return nil, err
@@ -219,9 +216,9 @@ func (r Request[T]) NoContent(config *RestConfig) error {
 		return err
 	}
 
-	if resp.Response.StatusCode != 204 && resp.Response.StatusCode != 200 {
+	if resp.StatusCode != 204 && resp.StatusCode != 200 {
 		var vErr types.APIError
-		err = json.NewDecoder(resp.Response.Body).Decode(&vErr)
+		err = json.NewDecoder(resp.Body).Decode(&vErr)
 
 		if err != nil {
 			return err

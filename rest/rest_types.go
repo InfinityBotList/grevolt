@@ -2,7 +2,6 @@ package rest
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
@@ -79,12 +78,6 @@ type Request[T any] struct {
 
 	// Ratelimit bucket, internal
 	bucket *ratelimits.Bucket
-}
-
-// A response from the API
-type Response[T any] struct {
-	Request  *Request[T]
-	Response *http.Response
 }
 
 // Represents a raw byte array (avatars for example)
