@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/infinitybotlist/grevolt/rest"
 	"github.com/infinitybotlist/grevolt/types"
 )
 
@@ -16,12 +17,7 @@ func testFetchChannel(t *testing.T) {
 	// Fetch channel
 	cli := ITestStartup(t)
 
-	c, apiErr, err := cli.Rest.FetchChannel(TestChannel)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	c, err := cli.Rest.FetchChannel(TestChannel)
 
 	if err != nil {
 		t.Error(err)
@@ -35,14 +31,9 @@ func testEditChannel(t *testing.T) {
 	// Fetch channel
 	cli := ITestStartup(t)
 
-	c, apiErr, err := cli.Rest.EditChannel(TestChannel, &types.DataEditChannel{
+	c, err := cli.Rest.EditChannel(TestChannel, &types.DataEditChannel{
 		Description: "This is a test channel",
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)
@@ -56,12 +47,7 @@ func testCloseChannel(t *testing.T) {
 	// Fetch channel
 	cli := ITestStartup(t)
 
-	c, apiErr, err := cli.Rest.OpenDirectMessage(DMableUser)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	c, err := cli.Rest.OpenDirectMessage(DMableUser)
 
 	if err != nil {
 		t.Error(err)
@@ -73,16 +59,16 @@ func testCloseChannel(t *testing.T) {
 		return
 	}
 
-	apiErr, err = cli.Rest.CloseChannel(c.Id, true)
+	err = cli.Rest.CloseChannel(c.Id, true)
 
-	if apiErr != nil {
-		if apiErr.Type() == "NoEffect" {
+	if err != nil {
+		if apiErr, ok := err.(*rest.RestError); ok && apiErr.Type() == "NoEffect" {
 			// This is good actually, it means the api call went through properly
 			t.Log("NoEffect, this is good")
 			return
 		}
 
-		t.Error(apiErr)
+		t.Error(err)
 		return
 	}
 

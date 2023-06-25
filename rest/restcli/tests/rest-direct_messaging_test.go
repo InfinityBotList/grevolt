@@ -5,12 +5,7 @@ import "testing"
 func TestFetchDirectMessageChannels(t *testing.T) {
 	cli := ITestStartup(t)
 
-	d, apiErr, err := cli.Rest.FetchDirectMessageChannels()
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	d, err := cli.Rest.FetchDirectMessageChannels()
 
 	if err != nil {
 		t.Error(err)
@@ -29,24 +24,14 @@ func TestOpenDirectMessage(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// Fetch self's ID
-	self, apiErr, err := cli.Rest.FetchSelf()
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	self, err := cli.Rest.FetchSelf()
 
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	c, apiErr, err := cli.Rest.OpenDirectMessage(self.Id)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	c, err := cli.Rest.OpenDirectMessage(self.Id)
 
 	if err != nil {
 		t.Error(err)

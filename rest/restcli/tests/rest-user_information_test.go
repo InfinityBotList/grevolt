@@ -10,12 +10,7 @@ import (
 func TestFetchSelf(t *testing.T) {
 	cli := ITestStartup(t)
 
-	u, apiErr, err := cli.Rest.FetchSelf()
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.FetchSelf()
 
 	if err != nil {
 		t.Error(err)
@@ -34,12 +29,7 @@ func TestFetchUser(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// We use zomatree here because it's a user that is guaranteed to exist
-	u, apiErr, err := cli.Rest.FetchUser(UserZomatree)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.FetchUser(UserZomatree)
 
 	if err != nil {
 		t.Error(err)
@@ -58,12 +48,7 @@ func TestEditUser(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// First fetch self
-	self, apiErr, err := cli.Rest.FetchSelf()
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	self, err := cli.Rest.FetchSelf()
 
 	if err != nil {
 		t.Error(err)
@@ -71,14 +56,9 @@ func TestEditUser(t *testing.T) {
 	}
 
 	// We use zomatree here because it's a user that is guaranteed to exist
-	u, apiErr, err := cli.Rest.EditUser(self.Id, &types.DataEditUser{
+	u, err := cli.Rest.EditUser(self.Id, &types.DataEditUser{
 		DisplayName: "Rootspring",
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)
@@ -97,12 +77,7 @@ func TestFetchUserFlags(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// We use zomatree here because it's a user that is guaranteed to exist
-	u, apiErr, err := cli.Rest.FetchUserFlags(UserZomatree)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.FetchUserFlags(UserZomatree)
 
 	if err != nil {
 		t.Error(err)
@@ -127,15 +102,10 @@ func TestChangeUsername(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// We use zomatree here because it's a user that is guaranteed to exist
-	u, apiErr, err := cli.Rest.ChangeUsername(&types.DataChangeUsername{
+	u, err := cli.Rest.ChangeUsername(&types.DataChangeUsername{
 		Username: "root",
 		Password: pass,
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)
@@ -154,31 +124,21 @@ func TestFetchDefaultAvatar(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// We use zomatree here because it's a user that is guaranteed to exist
-	bytes, apiErr, err := cli.Rest.FetchDefaultAvatar(UserZomatree)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	bytes, err := cli.Rest.FetchDefaultAvatar(UserZomatree)
 
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	t.Log(len(bytes), "bytes")
+	t.Log(len(bytes.Raw), "bytes")
 }
 
 func TestFetchUserProfile(t *testing.T) {
 	cli := ITestStartup(t)
 
 	// We use zomatree here because it's a user that is guaranteed to exist
-	u, apiErr, err := cli.Rest.FetchUserProfile(UserZomatree)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.FetchUserProfile(UserZomatree)
 
 	if err != nil {
 		t.Error(err)

@@ -11,7 +11,7 @@ func TestChannelSetRolePermission(t *testing.T) {
 	// Create invite
 	cli := ITestStartup(t)
 
-	c, apiErr, err := cli.Rest.ChannelSetRolePermission(TestChannel, TestRole, &types.PatchOverrideField{
+	c, err := cli.Rest.ChannelSetRolePermission(TestChannel, TestRole, &types.PatchOverrideField{
 		Permissions: &types.Override{
 			Allow: permissions.NewPermissionManager(
 				permissions.ManageChannel,
@@ -21,11 +21,6 @@ func TestChannelSetRolePermission(t *testing.T) {
 			).Build(),
 		},
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)
@@ -39,7 +34,7 @@ func TestChannelSetDefaultPermission(t *testing.T) {
 	// Create invite
 	cli := ITestStartup(t)
 
-	c, apiErr, err := cli.Rest.ChannelSetDefaultPermission(TestChannel, &types.PatchOverrideField{
+	c, err := cli.Rest.ChannelSetDefaultPermission(TestChannel, &types.PatchOverrideField{
 		Permissions: &types.Override{
 			Allow: permissions.NewPermissionManager(
 				permissions.ManageChannel,
@@ -49,11 +44,6 @@ func TestChannelSetDefaultPermission(t *testing.T) {
 			).Build(),
 		},
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)

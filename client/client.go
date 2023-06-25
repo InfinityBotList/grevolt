@@ -2,30 +2,54 @@ package client
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/rest"
 	"github.com/infinitybotlist/grevolt/rest/restcli"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Client struct {
-	Rest      restcli.RestClient
-	Websocket gateway.GatewayClient
+	Rest      *restcli.RestClient
+	Websocket *gateway.GatewayClient
 }
 
 // New returns a new client with default options
-func New() *Client {
-	return &Client{
-		Rest: restcli.RestClient{
+func New() Client {
+	w := zapcore.AddSync(os.Stdout)
+
+	var level = zap.InfoLevel
+	if os.Getenv("DEBUG") == "true" {
+		level = zap.DebugLevel
+	}
+
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		w,
+		level,
+	)
+
+	logger := zap.New(core).Sugar()
+
+	c := Client{
+		Rest: &restcli.RestClient{
 			Config: rest.DefaultRestConfig(),
 		},
-		Websocket: gateway.GatewayClient{
+		Websocket: &gateway.GatewayClient{
 			APIVersion: "1",
 			Timeout:    10 * time.Second,
 		},
 	}
+
+	c.Rest.Config.Logger = logger.Named("rest")
+	c.Rest.Config.Ratelimiter.Logger = logger.Named("ratelimiter")
+	c.Websocket.Logger = logger.Named("websocket").Desugar()
+
+	return c
 }
 
 // Authorizes to both rest and websocket (websocket not implemented yet)
@@ -46,14 +70,10 @@ func (c *Client) PrepareWS() error {
 	}
 
 	// Fetch the websocket URL
-	cfg, apiError, err := c.Rest.QueryNode()
+	cfg, err := c.Rest.QueryNode()
 
 	if err != nil {
 		return err
-	}
-
-	if apiError != nil {
-		return errors.New(apiError.Type())
 	}
 
 	// Set the websocket URL

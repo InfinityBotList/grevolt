@@ -7,12 +7,7 @@ import (
 func TestQueryNode(t *testing.T) {
 	cli := ITestStartup(t)
 
-	qn, apiErr, err := cli.Rest.QueryNode()
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	qn, err := cli.Rest.QueryNode()
 
 	if err != nil {
 		t.Error(err)

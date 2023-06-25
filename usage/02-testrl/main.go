@@ -40,17 +40,17 @@ func main() {
 	// Print the test no and name in bold
 
 	for {
-		u, apiErr, err := c.Rest.FetchSelf()
-		fmt.Println("User:", u, "\nAPI Error:", apiErr, "\nError:", err, "UserBot info:", func() any {
+		u, err := c.Rest.FetchSelf()
+		fmt.Println("User:", u, "\nError:", err, "UserBot info:", func() any {
 			if u != nil {
 				return u.Bot
 			}
 			return "<nil>"
 		}())
 
-		u, apiErr, err = c.Rest.FetchUser("01FEZ09YRQ02C5XVBW6DG4QFQC")
+		u, err = c.Rest.FetchUser("01FEZ09YRQ02C5XVBW6DG4QFQC")
 
-		fmt.Println("User:", u, "\nAPI Error:", apiErr, "\nError:", err, "UserBot info:", func() any {
+		fmt.Println("User:", u, "\nError:", err, "UserBot info:", func() any {
 			if u != nil {
 				return u.Bot
 			}

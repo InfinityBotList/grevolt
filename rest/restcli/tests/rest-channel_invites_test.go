@@ -6,12 +6,7 @@ func TestCreateInvite(t *testing.T) {
 	// Create invite
 	cli := ITestStartup(t)
 
-	invite, apiErr, err := cli.Rest.CreateInvite(TestChannel)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	invite, err := cli.Rest.CreateInvite(TestChannel)
 
 	if err != nil {
 		t.Error(err)

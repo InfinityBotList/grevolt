@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/client"
-	"github.com/infinitybotlist/grevolt/client/auth"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,7 +24,7 @@ const (
 )
 
 // Defines a set of common functions for testing
-func ITestStartup(t *testing.T) *client.Client {
+func ITestStartup(t *testing.T) client.Client {
 	// Use git rev-parse --show-toplevel to get the root directory
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 

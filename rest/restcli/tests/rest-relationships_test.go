@@ -10,12 +10,7 @@ import (
 func TestFetchMutualFriendsAndServers(t *testing.T) {
 	cli := ITestStartup(t)
 
-	ch, apiErr, err := cli.Rest.FetchMutualFriendsAndServers(UserZomatree)
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	ch, err := cli.Rest.FetchMutualFriendsAndServers(UserZomatree)
 
 	if err != nil {
 		t.Error(err)
@@ -47,12 +42,7 @@ func TestMutuals(t *testing.T) {
 func testAcceptFriendRequest(t *testing.T) {
 	cli := ITestStartup(t)
 
-	u, apiErr, err := cli.Rest.AcceptFriendRequest(os.Getenv("TEST_FRIEND_REQUEST__ACCEPT"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.AcceptFriendRequest(os.Getenv("TEST_FRIEND_REQUEST__ACCEPT"))
 
 	if err != nil {
 		t.Error(err)
@@ -70,12 +60,7 @@ func testAcceptFriendRequest(t *testing.T) {
 func testDenyFriendRequest(t *testing.T) {
 	cli := ITestStartup(t)
 
-	u, apiErr, err := cli.Rest.DenyFriendRequestOrRemoveFriend(os.Getenv("TEST_FRIEND_REQUEST__DENY"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.DenyFriendRequestOrRemoveFriend(os.Getenv("TEST_FRIEND_REQUEST__DENY"))
 
 	if err != nil {
 		t.Error(err)
@@ -93,12 +78,7 @@ func testDenyFriendRequest(t *testing.T) {
 func testBlockUser(t *testing.T) {
 	cli := ITestStartup(t)
 
-	u, apiErr, err := cli.Rest.BlockUser(os.Getenv("TEST_FRIEND_REQUEST__BLOCKUSER"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.BlockUser(os.Getenv("TEST_FRIEND_REQUEST__BLOCKUSER"))
 
 	if err != nil {
 		t.Error(err)
@@ -116,12 +96,7 @@ func testBlockUser(t *testing.T) {
 func testUnblockUser(t *testing.T) {
 	cli := ITestStartup(t)
 
-	u, apiErr, err := cli.Rest.BlockUser(os.Getenv("TEST_FRIEND_REQUEST__UNBLOCKUSER"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	u, err := cli.Rest.BlockUser(os.Getenv("TEST_FRIEND_REQUEST__UNBLOCKUSER"))
 
 	if err != nil {
 		t.Error(err)
@@ -139,14 +114,9 @@ func testUnblockUser(t *testing.T) {
 func testSendFriendRequest(t *testing.T) {
 	cli := ITestStartup(t)
 
-	u, apiErr, err := cli.Rest.SendFriendRequest(&types.DataSendFriendRequest{
+	u, err := cli.Rest.SendFriendRequest(&types.DataSendFriendRequest{
 		Username: os.Getenv("TEST_FRIEND_REQUEST__SEND"),
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)

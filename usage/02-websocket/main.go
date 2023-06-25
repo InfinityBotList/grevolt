@@ -9,6 +9,7 @@ import (
 	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/extras/advancedevents"
+	"github.com/infinitybotlist/grevolt/extras/gatewaymiddleware"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/types/events"
@@ -47,14 +48,10 @@ func main() {
 	})
 
 	// Look Busy
-	self, apiErr, err := c.Rest.FetchSelf()
+	self, err := c.Rest.FetchSelf()
 
 	if err != nil {
 		panic(err)
-	}
-
-	if apiErr != nil {
-		panic(apiErr.Type())
 	}
 
 	c.Rest.EditUser(self.Id, &types.DataEditUser{
@@ -71,13 +68,11 @@ func main() {
 		panic(err)
 	}
 
+	// Use messagepack for encoding (better performance)
 	c.Websocket.Encoding = "msgpack"
 
-	c.Websocket.EventHandlers.RawSinkFunc = func(w *gateway.GatewayClient, data []byte, typ string) {
-		if os.Getenv("DEBUG") == "true" {
-			fmt.Println(string(data))
-		}
-	}
+	// Add event debug middleware
+	gatewaymiddleware.EventDebug(c.Websocket)
 
 	c.Websocket.EventHandlers.Auth = func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Auth) {
 		fmt.Println("Auth:", e.Event.Type, ctx.Raw)
@@ -194,10 +189,10 @@ func main() {
 	}
 
 	for i := 0; i < 2; i++ {
-		test1(c, i)
+		test1(&c, i)
 	}
 
-	test2(c, 1)
+	test2(&c, 1)
 }
 
 func test1(c *client.Client, i int) {

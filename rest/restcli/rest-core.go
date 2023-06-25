@@ -6,8 +6,6 @@ import (
 )
 
 // Fetch the server configuration for this Revolt instance.
-func (c *RestClient) QueryNode() (*types.RevoltConfig, *types.APIError, error) {
-	var cfg *types.RevoltConfig
-	apiErr, err := rest.NewReq(&c.Config).Get("/").DoAndMarshal(&cfg)
-	return cfg, apiErr, err
+func (c *RestClient) QueryNode() (*types.RevoltConfig, error) {
+	return rest.Request[types.RevoltConfig]{Path: "/"}.With(&c.Config)
 }

@@ -27,14 +27,9 @@ func TestBots(t *testing.T) {
 func testCreateBot(t *testing.T) {
 	cli := ITestStartup(t)
 
-	qn, apiErr, err := cli.Rest.CreateBot(&types.DataCreateBot{
+	qn, err := cli.Rest.CreateBot(&types.DataCreateBot{
 		Name: "PogListingBot1",
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)
@@ -59,12 +54,7 @@ func testFetchPublicBot(t *testing.T) {
 
 	cli := ITestStartup(t)
 
-	qn, apiErr, err := cli.Rest.FetchPublicBot(os.Getenv("BOT_ID"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	qn, err := cli.Rest.FetchPublicBot(os.Getenv("BOT_ID"))
 
 	if err != nil {
 		t.Error(err)
@@ -86,14 +76,9 @@ func testInviteBot(t *testing.T) {
 
 	cli := ITestStartup(t)
 
-	apiErr, err := cli.Rest.InviteBot(os.Getenv("BOT_ID"), &types.DataInviteBot{
+	err := cli.Rest.InviteBot(os.Getenv("BOT_ID"), &types.DataInviteBot{
 		Server: os.Getenv("BOT_INVITE_SERVER_ID"),
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)
@@ -110,12 +95,7 @@ func testFetchBot(t *testing.T) {
 
 	cli := ITestStartup(t)
 
-	qn, apiErr, err := cli.Rest.FetchBot(os.Getenv("BOT_ID"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	qn, err := cli.Rest.FetchBot(os.Getenv("BOT_ID"))
 
 	if err != nil {
 		t.Error(err)
@@ -133,12 +113,7 @@ func testFetchBot(t *testing.T) {
 func testFetchOwnedBots(t *testing.T) {
 	cli := ITestStartup(t)
 
-	qn, apiErr, err := cli.Rest.FetchOwnedBots()
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	qn, err := cli.Rest.FetchOwnedBots()
 
 	if err != nil {
 		t.Error(err)
@@ -170,12 +145,7 @@ func testDeleteBot(t *testing.T) {
 
 	cli := ITestStartup(t)
 
-	apiErr, err := cli.Rest.DeleteBot(os.Getenv("BOT_ID"))
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
+	err := cli.Rest.DeleteBot(os.Getenv("BOT_ID"))
 
 	if err != nil {
 		t.Error(err)
@@ -192,14 +162,9 @@ func testEditBot(t *testing.T) {
 
 	cli := ITestStartup(t)
 
-	qn, apiErr, err := cli.Rest.EditBot(os.Getenv("BOT_ID"), &types.DataEditBot{
+	qn, err := cli.Rest.EditBot(os.Getenv("BOT_ID"), &types.DataEditBot{
 		Name: "Miguel",
 	})
-
-	if apiErr != nil {
-		t.Error(apiErr)
-		return
-	}
 
 	if err != nil {
 		t.Error(err)

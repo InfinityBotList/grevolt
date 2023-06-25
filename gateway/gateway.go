@@ -165,6 +165,12 @@ type GatewayClient struct {
 
 	// Event handlers, set these to handle events
 	EventHandlers EventHandlers
+
+	// Raw event handlers, set these to handle raw events (as bytes)
+	//
+	// Useful if you wish to add support for newer events not yet supported
+	// by the library
+	RawSinkFunc []func(w *GatewayClient, data []byte, typ string)
 }
 
 func (w *GatewayClient) GatewayURL() string {

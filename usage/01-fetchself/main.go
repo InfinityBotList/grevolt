@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
-	"github.com/infinitybotlist/grevolt/client"
+	"github.com/infinitybotlist/grevolt/extras/cache"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,7 +30,7 @@ func main() {
 	}
 
 	// Create a new client
-	c := client.New()
+	c := cache.New()
 
 	// Authorize the client
 	c.Authorize(&auth.Token{
@@ -39,11 +40,13 @@ func main() {
 
 	// Print the test no and name in bold
 
-	u, apiErr, err := c.Rest.FetchSelf()
-	fmt.Println("User:", u, "\nAPI Error:", apiErr, "\nError:", err, "UserBot info:", func() any {
+	u, err := c.Rest.FetchSelf()
+	fmt.Println("User:", u, "\nError:", err, "UserBot info:", func() any {
 		if u != nil {
 			return u.Bot
 		}
 		return "<nil>"
 	}())
+
+	time.Sleep(time.Second)
 }
