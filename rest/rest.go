@@ -12,14 +12,57 @@ import (
 	"strings"
 	"time"
 
+	"github.com/infinitybotlist/grevolt/client/auth"
 	"github.com/infinitybotlist/grevolt/rest/ratelimits"
-	"github.com/infinitybotlist/grevolt/rest/restconfig"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/version"
 	"github.com/sethgrid/pester"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+type RestConfig struct {
+	// The URL of the API
+	APIUrl string
+
+	// Timeout for requests
+	Timeout time.Duration
+
+	// Logger to use, will be autofilled if not provided
+	Logger *zap.SugaredLogger
+
+	// Session token for requests
+	SessionToken *auth.Token
+
+	// Ratelimiter
+	Ratelimiter *ratelimits.RateLimiter
+
+	// Max tries for requests
+	MaxRestRetries int
+
+	// On ratelimit function
+	OnRatelimit func(*types.RateLimit)
+
+	// Whether or not to retry on ratelimit
+	RetryOnRatelimit bool
+
+	// Pester client
+	Pester *pester.Client
+}
+
+// DefaultRestConfig is the default configuration for the client
+func DefaultRestConfig() RestConfig {
+	return RestConfig{
+		APIUrl:      "https://api.revolt.chat/",
+		Timeout:     10 * time.Second,
+		Ratelimiter: ratelimits.NewRatelimiter(),
+		OnRatelimit: func(r *types.RateLimit) {
+			fmt.Println("Ratelimited:", r)
+		},
+		RetryOnRatelimit: true,
+		Pester:           pester.New(),
+	}
+}
 
 // A response from the API
 type ClientResponse struct {
@@ -76,7 +119,7 @@ type ClientRequest struct {
 	path     string
 	json     any
 	headers  map[string]string
-	config   *restconfig.RestConfig
+	config   *RestConfig
 	sequence int // Sequence number for this request
 	bucket   *ratelimits.Bucket
 }
@@ -191,7 +234,7 @@ func (r ClientRequest) Request() (*ClientResponse, error) {
 }
 
 // Creates a new request, must be followed by a method call otherwise the request will be invalid
-func NewReq(config *restconfig.RestConfig) ClientRequest {
+func NewReq(config *RestConfig) ClientRequest {
 	return ClientRequest{
 		config:  config,
 		headers: make(map[string]string),

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/infinitybotlist/grevolt/client/auth"
-	"github.com/infinitybotlist/grevolt/client/restcli"
 	"github.com/infinitybotlist/grevolt/gateway"
-	"github.com/infinitybotlist/grevolt/rest/restconfig"
+	"github.com/infinitybotlist/grevolt/rest"
+	"github.com/infinitybotlist/grevolt/rest/restcli"
 )
 
 type Client struct {
@@ -19,7 +19,7 @@ type Client struct {
 func New() *Client {
 	return &Client{
 		Rest: restcli.RestClient{
-			Config: restconfig.DefaultRestConfig(),
+			Config: rest.DefaultRestConfig(),
 		},
 		Websocket: gateway.GatewayClient{
 			APIVersion: "1",
