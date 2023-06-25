@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
-	"github.com/infinitybotlist/grevolt/extras/cache"
+	"github.com/infinitybotlist/grevolt/client"
 	"gopkg.in/yaml.v3"
 )
 
@@ -30,7 +30,7 @@ func main() {
 	}
 
 	// Create a new client
-	c := cache.New()
+	c := client.New()
 
 	// Authorize the client
 	c.Authorize(&auth.Token{

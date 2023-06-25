@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/infinitybotlist/grevolt/auth"
+	"github.com/infinitybotlist/grevolt/cache/state"
 	"github.com/infinitybotlist/grevolt/gateway/broadcast"
 	"github.com/infinitybotlist/grevolt/version"
 	"go.uber.org/zap"
@@ -112,6 +113,22 @@ type StatusPayload struct {
 	StatusMessage StatusMessage
 }
 
+type Heartbeat struct {
+	// Last time a ping was sent
+	LastHeartbeatSent time.Time
+
+	// Last time a ping was received
+	LastHeartbeatAck time.Time
+
+	// Interval
+	HeartbeatInterval time.Duration
+}
+
+// Returns the websocket latency
+func (h *Heartbeat) Latency() time.Duration {
+	return h.LastHeartbeatAck.Sub(h.LastHeartbeatSent)
+}
+
 type GatewayClient struct {
 	sync.Mutex
 
@@ -127,8 +144,8 @@ type GatewayClient struct {
 	// WS Deadline
 	Deadline time.Duration
 
-	// Heartbeat interval
-	HeartbeatInterval time.Duration
+	// Heartbeat data
+	Heartbeat *Heartbeat
 
 	// Logger to use, will be autofilled if not provided
 	Logger *zap.Logger
@@ -162,6 +179,14 @@ type GatewayClient struct {
 	//
 	// +unstable
 	State WsState
+
+	// Grevolt shared state
+	//
+	// This is a pointer to the shared state and so can be modified
+	//
+	// State stores automatically handle concurrency, so you do not need to
+	// worry about that.
+	SharedState *state.State
 
 	// Event handlers, set these to handle events
 	EventHandlers EventHandlers
@@ -199,8 +224,14 @@ func (w *GatewayClient) Open() error {
 		w.Deadline = 60 * time.Second
 	}
 
-	if w.HeartbeatInterval == 0 {
-		w.HeartbeatInterval = 10 * time.Second
+	if w.Heartbeat == nil {
+		w.Heartbeat = &Heartbeat{
+			HeartbeatInterval: 10 * time.Second,
+		}
+	}
+
+	if w.Heartbeat.HeartbeatInterval == 0 {
+		w.Heartbeat.HeartbeatInterval = 10 * time.Second
 	}
 
 	if w.Timeout == 0 {
@@ -363,6 +394,9 @@ func (w *GatewayClient) readMessages() {
 				switch data.Type {
 				case "Pong":
 					w.Logger.Debug("recieved pong from gateway")
+
+					w.Heartbeat.LastHeartbeatAck = time.Now()
+
 					w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 					err = false
 				case "NotFound": // Undocumented, but means that auth credentials are invalid
@@ -542,7 +576,7 @@ func (w *GatewayClient) heartbeat() {
 	hbStartTime := time.Now().Nanosecond()
 	w.Logger.Debug("starting heartbeat ", zap.Int("start_time", hbStartTime))
 	// Create new ticker
-	ticker := time.NewTicker(w.HeartbeatInterval)
+	ticker := time.NewTicker(w.Heartbeat.HeartbeatInterval)
 
 	// Send heartbeat
 	sub := w.StatusChannel.Subscribe()
@@ -576,6 +610,8 @@ func (w *GatewayClient) heartbeat() {
 				"type": "Ping",
 				"data": time.Now().Unix(),
 			})
+
+			w.Heartbeat.LastHeartbeatSent = time.Now()
 		}
 	}
 }

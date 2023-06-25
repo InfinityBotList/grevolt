@@ -138,6 +138,7 @@ func main() {
 	c.Websocket.EventHandlers.Message = advancedevents.NewEventHandler[events.Message]().Add(
 		func(w *gateway.GatewayClient, ctx *gateway.EventContext, e *events.Message) error {
 			fmt.Println("Message:", e.Content, e.Author)
+			fmt.Println(c.State.Members.Length())
 			return nil
 		},
 	).AddRaw(

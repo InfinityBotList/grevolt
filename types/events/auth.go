@@ -7,7 +7,7 @@ type Auth struct {
 	Type string `json:"event_type"`
 }
 
-type AuthDeleteSession struct {
+type Auth_DeleteSession struct {
 	Auth
 
 	// User Id
@@ -17,7 +17,7 @@ type AuthDeleteSession struct {
 	SessionId string `json:"session_id"`
 }
 
-type AuthDeleteAllSessions struct {
+type Auth_DeleteAllSessions struct {
 	Auth
 
 	// User Id
