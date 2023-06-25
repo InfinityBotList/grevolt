@@ -2,3 +2,5 @@ BOT_INVITE_SERVER_ID=01G11DTVYAJN1JSH6Z9NQ158CM # Edit this to your server ID
 
 test:
 	BOT_INVITE_SERVER_ID=${BOT_INVITE_SERVER_ID} go test -v ./...
+testone:
+	BOT_INVITE_SERVER_ID=${BOT_INVITE_SERVER_ID} go test -v ./... -run ${TEST}

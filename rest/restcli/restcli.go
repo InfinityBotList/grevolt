@@ -17,3 +17,9 @@ func ternary(condition bool, trueVal, falseVal string) string {
 	}
 	return falseVal
 }
+
+func runIf(condition bool, f func()) {
+	if condition {
+		f()
+	}
+}
