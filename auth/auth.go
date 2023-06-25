@@ -1,4 +1,4 @@
-// Package auth contains the struct for auth, this is required due to import cycles
+// Package auth contains the struct for auth
 package auth
 
 // Token is a session token used for authorization
