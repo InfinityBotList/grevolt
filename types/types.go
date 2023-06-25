@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/infinitybotlist/grevolt/types/flags/compat"
+	"github.com/infinitybotlist/grevolt/types/compat"
 )
 
 type Object map[string]any

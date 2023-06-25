@@ -48,8 +48,6 @@ func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 		}
 	}
 
-	config.Logger.Debug(r.Method, config.APIUrl+r.Path, " (reqBody:", len(body), "bytes)")
-
 	config.Logger.Debugln("MakeNewRequest", r.Method, config.APIUrl+r.Path, " (reqBody:", len(body), "bytes)")
 	req, err := http.NewRequest(string(r.Method), config.APIUrl+r.Path, bytes.NewReader(body))
 
