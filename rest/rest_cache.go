@@ -15,6 +15,10 @@ func cacheImpl(r *RequestData, v any) {
 }
 
 func cache(r *RequestData, v any) error {
+	if r.Config.DisableRestCaching {
+		return nil
+	}
+
 	go cacheImpl(r, v)
 	return nil
 }

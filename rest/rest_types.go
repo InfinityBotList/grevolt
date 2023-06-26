@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
@@ -53,6 +54,9 @@ type RestConfig struct {
 
 	// Shared state for rest requests
 	SharedState *state.State
+
+	// Disable rest caching
+	DisableRestCaching bool
 }
 
 // DefaultRestConfig is the default configuration for the client
@@ -90,6 +94,7 @@ type Request[T any] struct {
 	Path    string
 	Json    any
 	Headers map[string]string
+	Cookies []http.Cookie
 
 	// Sequence number for this request, internal
 	sequence int

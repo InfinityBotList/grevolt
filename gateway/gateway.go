@@ -130,6 +130,15 @@ func (h *Heartbeat) Latency() time.Duration {
 	return h.LastHeartbeatAck.Sub(h.LastHeartbeatSent)
 }
 
+type GatewayCacher struct {
+	// Whether to disable websocket-based caching
+	Disable bool
+
+	// Disable automatic rest fetching (to handle partial/unfilled cache objects
+	// where it is sane to do so)
+	DisableAutoRestFetching bool
+}
+
 type GatewayClient struct {
 	sync.Mutex
 
@@ -195,9 +204,6 @@ type GatewayClient struct {
 	// worry about that.
 	SharedState *state.State
 
-	// Whether to disable websocket-based caching
-	DisableCache bool
-
 	// Event handlers, set these to handle events
 	EventHandlers EventHandlers
 
@@ -206,6 +212,9 @@ type GatewayClient struct {
 	// Useful if you wish to add support for newer events not yet supported
 	// by the library
 	RawSinkFunc []func(w *GatewayClient, data []byte, typ string)
+
+	// Whether to disable websocket-based caching
+	GatewayCache GatewayCacher
 }
 
 func (w *GatewayClient) GatewayURL() string {

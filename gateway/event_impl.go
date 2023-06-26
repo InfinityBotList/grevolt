@@ -145,7 +145,7 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	}
 
 	// Handle caching here
-	if evt != nil && !w.DisableCache {
+	if evt != nil && !w.GatewayCache.Disable {
 		go func() {
 			err := w.cacheEvent(typ, evt)
 

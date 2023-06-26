@@ -60,7 +60,10 @@ func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 		req.Header.Add(k, v)
 	}
 
-	req.Header.Add("User-Agent", "grevolt/"+version.Version)
+	for _, cookie := range r.Cookies {
+		req.AddCookie(&cookie)
+	}
+
 	req.Header.Add("Content-Type", "application/json")
 
 	config.Pester.Timeout = config.Timeout
@@ -219,6 +222,16 @@ func (r Request[T]) NoContent(config *RestConfig) error {
 			r.Headers["x-bot-token"] = config.SessionToken.Token
 		} else {
 			r.Headers["x-session-token"] = config.SessionToken.Token
+		}
+
+		if config.SessionToken.CfClearance != nil {
+			r.Headers["user-agent"] = config.SessionToken.CfClearance.UserAgent
+			r.Cookies = append(r.Cookies, http.Cookie{
+				Name:  "cf_clearance",
+				Value: config.SessionToken.CfClearance.CookieValue,
+			})
+		} else {
+			r.Headers["user-agent"] = "grevolt/" + version.Version
 		}
 	}
 

@@ -205,13 +205,15 @@ func (w *GatewayClient) cacheEvent(typ string, d events.EventInterface) error {
 
 		// Cache user as partial if not found
 		if errors.Is(err, store.ErrNotFound) {
-			w.Logger.Debug("User not found in cache, caching as partial", zap.String("user", evt.Id))
-			// Cache the user
-			evt.Data.Id = evt.Id
-			err := w.SharedState.AddUser(evt.Data)
-
-			if err != nil {
-				return err
+			// Fetch from rest here, the info in a UserUpdate is not enough for being a
+			// starting point for a requestion
+			//
+			// Rest automatically performs caching
+			if !w.GatewayCache.DisableAutoRestFetching {
+				_, err = w.RestClient.FetchUser(evt.Id)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
