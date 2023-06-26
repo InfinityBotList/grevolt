@@ -30,7 +30,7 @@ type RateLimiter struct {
 	Buckets          map[string]*Bucket
 	GlobalRateLimit  time.Duration
 	CustomRateLimits []*CustomRateLimit
-	Logger           *zap.SugaredLogger
+	Logger           *zap.Logger
 }
 
 // NewRatelimiter returns a new RateLimiter
@@ -63,8 +63,6 @@ func (r *RateLimiter) GetBucket(pkey string) *Bucket {
 
 	method, path := split[0], split[1]
 
-	r.Logger.Debug("GetBucket: ", method, " ", path)
-
 	// Specific bucket handles per method
 	//
 	// Non-exhaustive, but covers many cases
@@ -90,7 +88,13 @@ func (r *RateLimiter) GetBucket(pkey string) *Bucket {
 
 	key := bucketName[0]
 
-	r.Logger.Debug("GetBucket: ", path)
+	r.Logger.Debug(
+		"Got bucket",
+		zap.String("method", method),
+		zap.String("pkey", pkey),
+		zap.String("parsedKey", key),
+		zap.Int64p("global", r.Global),
+	)
 
 	if bucket, ok := r.Buckets[key]; ok {
 		return bucket
@@ -109,8 +113,6 @@ func (r *RateLimiter) GetBucket(pkey string) *Bucket {
 			break
 		}
 	}
-
-	r.Logger.Debug("GetBucket: ", key)
 
 	r.Buckets[key] = b
 	return b
@@ -143,7 +145,7 @@ func (r *RateLimiter) LockBucketObject(b *Bucket) *Bucket {
 	b.Lock()
 
 	if wait := r.GetWaitTime(b, 1); wait > 0 {
-		r.Logger.Info("LockBucketObject: ", b.Key, " waiting ", wait)
+		r.Logger.Info("Waiting to lock bucket", zap.String("key", b.Key), zap.Duration("waitTime", wait))
 		time.Sleep(wait)
 	}
 

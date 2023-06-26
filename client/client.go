@@ -37,7 +37,7 @@ func New() Client {
 		level,
 	)
 
-	logger := zap.New(core).Sugar()
+	logger := zap.New(core)
 
 	s := state.State{
 		Users:    &basicstore.BasicStore[types.User]{},
@@ -63,7 +63,7 @@ func New() Client {
 
 	c.Rest.Config.Logger = logger.Named("rest")
 	c.Rest.Config.Ratelimiter.Logger = logger.Named("ratelimiter")
-	c.Websocket.Logger = logger.Named("websocket").Desugar()
+	c.Websocket.Logger = logger.Named("websocket")
 
 	return c
 }
@@ -96,7 +96,7 @@ func (c *Client) PrepareWS() error {
 	c.Websocket.WSUrl = cfg.Ws
 
 	if c.Websocket.Logger == nil {
-		c.Websocket.Logger = c.Rest.Config.Logger.Desugar()
+		c.Websocket.Logger = c.Rest.Config.Logger
 	}
 
 	c.Websocket.RestClient = c.Rest

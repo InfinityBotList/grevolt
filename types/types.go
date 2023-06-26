@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/infinitybotlist/grevolt/types/compat"
+	"github.com/infinitybotlist/grevolt/types/timestamp"
 )
 
 type Object map[string]any
@@ -307,7 +307,7 @@ type IndexAccesses struct {
 	// Operations since timestamp
 	Ops uint64 `json:"ops"`
 	// Timestamp at which data keeping begun
-	Since compat.Timestamp `json:"since"`
+	Since timestamp.Timestamp `json:"since"`
 }
 
 // Avatar attachment
@@ -1119,7 +1119,7 @@ type Member struct {
 	// Unique member id
 	Id *MemberId `json:"_id"`
 	// Time at which this user joined the server
-	JoinedAt compat.Timestamp `json:"joined_at,omitempty"`
+	JoinedAt timestamp.Timestamp `json:"joined_at,omitempty"`
 	// Member's nickname
 	Nickname string `json:"nickname,omitempty"`
 	// Avatar attachment
@@ -1127,7 +1127,7 @@ type Member struct {
 	// Member's roles
 	Roles []string `json:"roles,omitempty"`
 	// Timestamp this member is timed out until
-	Timeout compat.Timestamp `json:"timeout,omitempty"`
+	Timeout timestamp.Timestamp `json:"timeout,omitempty"`
 }
 
 // Composite primary key consisting of server and user id

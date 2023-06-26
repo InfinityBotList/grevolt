@@ -14,6 +14,7 @@ import (
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/version"
 	"github.com/sethgrid/pester"
+	"go.uber.org/zap"
 )
 
 // Makes a request to the API
@@ -31,10 +32,13 @@ func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 		time.Sleep(time.Duration(1<<r.sequence) * 100 * time.Millisecond)
 	}
 
-	config.Logger.Debug("Acquired bucket ", r.bucket)
-
 	if r.bucket != nil {
-		config.Logger.Debug("Bucket name ", r.bucket.Key)
+		config.Logger.Debug(
+			"Acquired bucket",
+			zap.String("key", r.bucket.Key),
+			zap.Int("limit", r.bucket.Limit),
+			zap.Int("remaining", r.bucket.Remaining),
+		)
 	}
 
 	var body []byte
@@ -48,7 +52,12 @@ func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 		}
 	}
 
-	config.Logger.Debugln("MakeNewRequest", r.Method, config.APIUrl+r.Path, " (reqBody:", len(body), "bytes)")
+	config.Logger.Debug(
+		"Make request",
+		zap.String("method", string(r.Method)),
+		zap.String("url", config.APIUrl+r.Path),
+		zap.Int("bodySize", len(body)),
+	)
 	req, err := http.NewRequest(string(r.Method), config.APIUrl+r.Path, bytes.NewReader(body))
 
 	if err != nil {
@@ -85,30 +94,29 @@ func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 	}
 
 	switch resp.StatusCode {
-	case http.StatusBadGateway:
+	case http.StatusBadGateway, http.StatusGatewayTimeout, http.StatusServiceUnavailable:
 		// Retry sending request if possible
 		if r.sequence < config.MaxRestRetries {
 
-			config.Logger.Errorf("%s Failed (%s), Retrying...", r.Path, resp.Status)
+			config.Logger.Error("Request failed, retrying...", zap.String("path", r.Path), zap.String("status", resp.Status))
 
 			config.Ratelimiter.LockBucketObject(r.bucket)
 			r.sequence++
 
 			return r.Request(config)
 		} else {
-			return nil, fmt.Errorf("exceeded Max retries HTTP %s, %s", resp.Status, r.Path)
+			return nil, fmt.Errorf("exceeded max retries HTTP %s, %s", resp.Status, r.Path)
 		}
 	case http.StatusTooManyRequests:
 		// Rate limited
 		var rl *types.RateLimit
 		err = json.NewDecoder(resp.Body).Decode(&rl)
 		if err != nil {
-			config.Logger.Errorf("rate limit unmarshal error, %s", err)
-			return nil, err
+			return nil, errors.New("rate limit unmarshal error: " + err.Error())
 		}
 
 		if config.RetryOnRatelimit {
-			config.Logger.Infof("Rate Limiting %s, retry in %v", r.Path, rl.RetryAfter)
+			config.Logger.Error("Request failed [ratelimited]", zap.String("path", r.Path), zap.String("status", resp.Status), zap.Int64("retryIn", rl.RetryAfter))
 			time.Sleep(time.Duration(rl.RetryAfter) * time.Millisecond)
 
 			config.Ratelimiter.LockBucketObject(r.bucket)
@@ -240,6 +248,8 @@ func (r Request[T]) NoContent(config *RestConfig) error {
 	if err != nil {
 		return err
 	}
+
+	config.Logger.Debug("Request made", zap.Int("statusCode", resp.StatusCode))
 
 	if resp.StatusCode != 204 && resp.StatusCode != 200 {
 		var vErr types.APIError

@@ -15,7 +15,7 @@ import (
 
 const (
 	// Revolts API
-	RevoltAPI = "https://api.revolt.chat"
+	RevoltAPI = "https://api.revolt.chat/"
 
 	// The staging API, used by the official apps etc, default
 	RevoltAPIStaging = "https://app.revolt.chat/api/"
@@ -29,7 +29,7 @@ type RestConfig struct {
 	Timeout time.Duration
 
 	// Logger to use, will be autofilled if not provided
-	Logger *zap.SugaredLogger
+	Logger *zap.Logger
 
 	// Session token for requests
 	SessionToken *auth.Token
@@ -62,7 +62,7 @@ type RestConfig struct {
 // DefaultRestConfig is the default configuration for the client
 func DefaultRestConfig() RestConfig {
 	return RestConfig{
-		APIUrl:      RevoltAPIStaging,
+		APIUrl:      RevoltAPI, // RevoltAPIStaging,
 		Timeout:     10 * time.Second,
 		Ratelimiter: ratelimits.NewRatelimiter(),
 		OnRatelimit: func(r *types.RateLimit) {

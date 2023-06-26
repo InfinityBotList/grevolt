@@ -1,6 +1,6 @@
 package types
 
-import "github.com/infinitybotlist/grevolt/types/compat"
+import "github.com/infinitybotlist/grevolt/types/timestamp"
 
 // Filter and sort messages by time
 type MessageQuery struct {
@@ -153,7 +153,7 @@ type Message struct {
 	// Array of attachments
 	Attachments []*File `json:"attachments,omitempty"`
 	// Time at which this message was last edited
-	Edited compat.Timestamp `json:"edited,omitempty"`
+	Edited timestamp.Timestamp `json:"edited,omitempty"`
 	// Attached embeds to this message
 	Embeds []Embed `json:"embeds,omitempty"`
 	// Array of user ids mentioned in this message
@@ -204,4 +204,12 @@ type MessageSystem struct {
 type MessageIds struct {
 	// Message IDs
 	Ids []string `json:"ids"`
+}
+
+type DataReactionsRemove struct {
+	// Remove a specific user's reaction
+	UserId string `json:"user_id,omitempty"`
+
+	// Remove all reactions
+	RemoveAll bool `json:"remove_all,omitempty"`
 }

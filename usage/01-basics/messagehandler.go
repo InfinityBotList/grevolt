@@ -3,16 +3,28 @@ package main
 import (
 	"strings"
 
+	"github.com/infinitybotlist/grevolt/cache/resolvers"
 	"github.com/infinitybotlist/grevolt/cache/store/basicstore"
 	"github.com/infinitybotlist/grevolt/gateway"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/infinitybotlist/grevolt/types/events"
+	"go.uber.org/zap"
 )
 
 const prefix = "!"
 
 func messageHandler(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *events.Message) {
-	// TODO: Add bot check, but state isn't advanced enough yet
+	// Resolve author, this is needed to check if its a bot or not
+	u, err := resolvers.ResolveUser(w.RestClient, evt.Author)
+
+	if err != nil {
+		w.Logger.Named("messageHandler").Error("Failed to resolve user", zap.String("user", evt.Author))
+	}
+
+	if u.Bot != nil {
+		w.Logger.Named("messageHandler").Info("Ignoring bot", zap.Any("bot", u))
+		return
+	}
 
 	if !strings.HasPrefix(evt.Content, prefix) {
 		return // Wrong prefix
