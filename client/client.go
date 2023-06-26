@@ -49,8 +49,7 @@ func New() Client {
 
 	c := Client{
 		Rest: &restcli.RestClient{
-			Config:      rest.DefaultRestConfig(),
-			SharedState: &s,
+			Config: rest.DefaultRestConfig(),
 		},
 		Websocket: &gateway.GatewayClient{
 			APIVersion:  "1",
@@ -59,6 +58,8 @@ func New() Client {
 		},
 		State: &s,
 	}
+
+	c.Rest.Config.SharedState = &s
 
 	c.Rest.Config.Logger = logger.Named("rest")
 	c.Rest.Config.Ratelimiter.Logger = logger.Named("ratelimiter")

@@ -5,10 +5,19 @@ import (
 	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
+	"github.com/infinitybotlist/grevolt/cache/state"
 	"github.com/infinitybotlist/grevolt/rest/ratelimits"
 	"github.com/infinitybotlist/grevolt/types"
 	"github.com/sethgrid/pester"
 	"go.uber.org/zap"
+)
+
+const (
+	// Revolts API
+	RevoltAPI = "https://api.revolt.chat"
+
+	// The staging API, used by the official apps etc, default
+	RevoltAPIStaging = "https://app.revolt.chat/api/"
 )
 
 type RestConfig struct {
@@ -38,12 +47,18 @@ type RestConfig struct {
 
 	// Pester client
 	Pester *pester.Client
+
+	// Functions to run upon successful marshal
+	OnMarshal []func(r *RequestData, v any) error
+
+	// Shared state for rest requests
+	SharedState *state.State
 }
 
 // DefaultRestConfig is the default configuration for the client
 func DefaultRestConfig() RestConfig {
 	return RestConfig{
-		APIUrl:      "https://api.revolt.chat/",
+		APIUrl:      RevoltAPIStaging,
 		Timeout:     10 * time.Second,
 		Ratelimiter: ratelimits.NewRatelimiter(),
 		OnRatelimit: func(r *types.RateLimit) {
@@ -51,6 +66,9 @@ func DefaultRestConfig() RestConfig {
 		},
 		RetryOnRatelimit: true,
 		Pester:           pester.New(),
+		OnMarshal: []func(r *RequestData, v any) error{
+			cache,
+		},
 	}
 }
 
@@ -78,6 +96,17 @@ type Request[T any] struct {
 
 	// Ratelimit bucket, internal
 	bucket *ratelimits.Bucket
+}
+
+// Request data from API, but not generic so can be used in OnMarshal and other functions
+//
+// In addition to typical Request data, this also contains config.Config
+type RequestData struct {
+	Method  Method
+	Path    string
+	Json    any
+	Headers map[string]string
+	Config  *RestConfig
 }
 
 // Represents a raw byte array (avatars for example)

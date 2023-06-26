@@ -3,8 +3,6 @@ package diff
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/infinitybotlist/grevolt/types"
 )
 
 // Applies all non-nil fields from new to to, thus creating a partial update
@@ -145,6 +143,7 @@ func partialUpdateImpl(to any, new any) any {
 	return to
 }
 
+/*
 type testStruct struct {
 	Str  string
 	Meow string
@@ -169,3 +168,4 @@ func init() {
 
 	fmt.Println(PartialUpdate(&to, &new))
 }
+*/

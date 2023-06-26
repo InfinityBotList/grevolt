@@ -1,6 +1,7 @@
 package basicstore
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/infinitybotlist/grevolt/cache/store"
@@ -18,10 +19,21 @@ type BasicStore[T any] struct {
 	Disabled bool
 }
 
-// Initialize the state
+// Initialize the state, not needed by Store interface but needed for this specific store
 func (s *BasicStore[T]) Init() *BasicStore[T] {
 	s.dataStore = make(map[string]*T)
 	return s
+}
+
+// Print list of key/value pairs, not needed by Store interface
+func (s *BasicStore[T]) KeyValuePairs() []string {
+	var kvs []string
+
+	for k, v := range s.dataStore {
+		kvs = append(kvs, fmt.Sprintln(k, "=>", v))
+	}
+
+	return kvs
 }
 
 // Is the state usable

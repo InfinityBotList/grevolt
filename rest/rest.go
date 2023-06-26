@@ -164,6 +164,20 @@ func (r Request[T]) With(config *RestConfig) (*T, error) {
 			return nil, err
 		}
 
+		for _, f := range config.OnMarshal {
+			err = f(&RequestData{
+				Method:  r.Method,
+				Path:    r.Path,
+				Json:    r.Json,
+				Headers: r.Headers,
+				Config:  config,
+			}, &v)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		return &v, nil
 	} else {
 		if resp.StatusCode == 401 {

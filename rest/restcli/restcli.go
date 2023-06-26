@@ -1,13 +1,11 @@
 package restcli
 
 import (
-	"github.com/infinitybotlist/grevolt/cache/state"
 	"github.com/infinitybotlist/grevolt/rest"
 )
 
 type RestClient struct {
-	Config      rest.RestConfig
-	SharedState *state.State
+	Config rest.RestConfig
 }
 
 // Helper methood for ternary
