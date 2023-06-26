@@ -21,8 +21,8 @@ func (c *RestClient) EditUser(target string, user *types.DataEditUser) (*types.U
 }
 
 // Retrieve a user's flags <given their id, these flags can be checked using flags.HasFlag>.
-func (c *RestClient) FetchUserFlags(target string) (*types.FlagResponse, error) {
-	return rest.Request[types.FlagResponse]{Path: "users/" + target + "/flags"}.With(&c.Config)
+func (c *RestClient) FetchUserFlags(target string) (*types.UserFlagResponse, error) {
+	return rest.Request[types.UserFlagResponse]{Path: "users/" + target + "/flags"}.With(&c.Config)
 }
 
 // Change your username <untested as it needs a password>

@@ -70,3 +70,25 @@ type DataInviteBot struct {
 	// Group id
 	Group string `json:"group,omitempty"`
 }
+
+// Data needed to create a bot
+//
+// <unless specified, all fields are required>
+type DataCreateBot struct {
+	// Bot username
+	Name string `json:"name"`
+}
+
+// Data needed to edit a bot
+type DataEditBot struct {
+	// Bot username
+	Name string `json:"name,omitempty"`
+	// Whether the bot can be added by anyone
+	Public bool `json:"public,omitempty"`
+	// Whether analytics should be gathered for this bot  Must be enabled in order to show up on [Revolt Discover](https://rvlt.gg).
+	Analytics bool `json:"analytics,omitempty"`
+	// Interactions URL
+	InteractionsUrl string `json:"interactions_url,omitempty"`
+	// Fields to remove from bot object
+	Remove []FieldsBot `json:"remove,omitempty"`
+}

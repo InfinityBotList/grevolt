@@ -60,6 +60,8 @@ type MessageEmbed struct {
 	// Site name, only sent on Website embeds
 	SiteName string `json:"site_name,omitempty"`
 	// ID of uploaded autumn file
+	//
+	// <does not appear to be sent at this time, may be sent in the future>
 	Media *File `json:"media,omitempty"`
 	// Colour of the embed (CSS colour)
 	Colour string `json:"colour,omitempty"`
@@ -93,7 +95,7 @@ type MessageEmbedImage struct {
 }
 
 type MessageEmbedVideo struct {
-	// URL of the video
+	// URL to the original video
 	Url string `json:"url"`
 
 	// Width of the video
@@ -102,3 +104,36 @@ type MessageEmbedVideo struct {
 	// Height of the video
 	Height int `json:"height"`
 }
+
+// TwitchType : Type of remote Twitch content
+//
+// <currently unused?>
+type TwitchType string
+
+// List of TwitchType
+const (
+	CHANNEL_TwitchType TwitchType = "Channel"
+	VIDEO_TwitchType   TwitchType = "Video"
+	CLIP_TwitchType    TwitchType = "Clip"
+)
+
+// LightspeedType : Type of remote Lightspeed.tv content
+//
+// <currently unused?>
+type LightspeedType string
+
+// List of LightspeedType
+const (
+	CHANNEL_LightspeedType LightspeedType = "Channel"
+)
+
+// ImageSize : Image positioning and size
+//
+// <currently unused?>
+type ImageSize string
+
+// List of ImageSize
+const (
+	LARGE_ImageSize   ImageSize = "Large"
+	PREVIEW_ImageSize ImageSize = "Preview"
+)

@@ -1,5 +1,41 @@
 package types
 
+// UserPermission : User permission definitions
+type UserPermission string
+
+// List of UserPermission
+const (
+	ACCESS_UserPermission       UserPermission = "Access"
+	VIEW_PROFILE_UserPermission UserPermission = "ViewProfile"
+	SEND_MESSAGE_UserPermission UserPermission = "SendMessage"
+	INVITE_UserPermission       UserPermission = "Invite"
+)
+
+// Presence : Presence status
+type Presence string
+
+// List of Presence
+const (
+	ONLINE_Presence    Presence = "Online"
+	IDLE_Presence      Presence = "Idle"
+	FOCUS_Presence     Presence = "Focus"
+	BUSY_Presence      Presence = "Busy"
+	INVISIBLE_Presence Presence = "Invisible"
+)
+
+// FieldsUser : Optional fields on user object
+type FieldsUser string
+
+// List of FieldsUser
+const (
+	AVATAR_FieldsUser             FieldsUser = "Avatar"
+	STATUS_TEXT_FieldsUser        FieldsUser = "StatusText"
+	STATUS_PRESENCE_FieldsUser    FieldsUser = "StatusPresence"
+	PROFILE_CONTENT_FieldsUser    FieldsUser = "ProfileContent"
+	PROFILE_BACKGROUND_FieldsUser FieldsUser = "ProfileBackground"
+	DISPLAY_NAME_FieldsUser       FieldsUser = "DisplayName"
+)
+
 // Representiation of a User on Revolt.
 type User struct {
 	// Unique Id
@@ -32,17 +68,6 @@ type User struct {
 	Online bool `json:"online,omitempty"`
 }
 
-// UserPermission : User permission definitions
-type UserPermission string
-
-// List of UserPermission
-const (
-	ACCESS_UserPermission       UserPermission = "Access"
-	VIEW_PROFILE_UserPermission UserPermission = "ViewProfile"
-	SEND_MESSAGE_UserPermission UserPermission = "SendMessage"
-	INVITE_UserPermission       UserPermission = "Invite"
-)
-
 // User's profile
 type UserProfile struct {
 	// Text content on user's profile
@@ -65,18 +90,6 @@ type UserStatus struct {
 	// Current presence option
 	Presence Presence `json:"presence,omitempty"`
 }
-
-// Presence : Presence status
-type Presence string
-
-// List of Presence
-const (
-	ONLINE_Presence    Presence = "Online"
-	IDLE_Presence      Presence = "Idle"
-	FOCUS_Presence     Presence = "Focus"
-	BUSY_Presence      Presence = "Busy"
-	INVISIBLE_Presence Presence = "Invisible"
-)
 
 // System message configuration
 
@@ -103,4 +116,15 @@ type DataEditUser struct {
 	Flags uint64 `json:"flags,omitempty"`
 	// Fields to remove from user object
 	Remove []FieldsUser `json:"remove,omitempty"`
+}
+
+// Relationship entry indicating current status with other user
+type Relationship struct {
+	Id     string              `json:"_id"`
+	Status *RelationshipStatus `json:"status"`
+}
+
+type UserFlagResponse struct {
+	// Flags
+	Flags uint64 `json:"flags"`
 }

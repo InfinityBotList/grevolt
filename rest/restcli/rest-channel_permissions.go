@@ -10,7 +10,7 @@ import (
 // Channel must be a TextChannel or VoiceChannel.
 //
 // <api uses SetRolePermission but this also exists on server information>
-func (c *RestClient) ChannelSetRolePermission(target, roleId string, override *types.PatchOverrideField) (*types.Channel, error) {
+func (c *RestClient) ChannelSetRolePermission(target, roleId string, override *types.PermissionsPatchOverrideField) (*types.Channel, error) {
 	return rest.Request[types.Channel]{Method: rest.PUT, Path: "channels/" + target + "/permissions/" + roleId, Json: override}.With(&c.Config)
 }
 
@@ -19,6 +19,6 @@ func (c *RestClient) ChannelSetRolePermission(target, roleId string, override *t
 // Channel must be a Group, TextChannel or VoiceChannel.
 //
 // <api uses SetDefaultPermission but this also exists on server information>
-func (c *RestClient) ChannelSetDefaultPermission(target string, override *types.PatchOverrideField) (*types.Channel, error) {
+func (c *RestClient) ChannelSetDefaultPermission(target string, override *types.PermissionsPatchOverrideField) (*types.Channel, error) {
 	return rest.Request[types.Channel]{Method: rest.PUT, Path: "channels/" + target + "/permissions/default", Json: override}.With(&c.Config)
 }
