@@ -30,7 +30,7 @@ func (s *State) GetUser(id string) (*types.User, error) {
 	return s.Users.Get(id)
 }
 
-// AddUser adds a user to the state
+// AddUser adds a user to the state or updates it
 func (s *State) AddUser(u *types.User) error {
 	return s.Users.Set(u.Id, u)
 }
@@ -47,7 +47,7 @@ func (s *State) GetServer(id string) (*types.Server, error) {
 	return s.Servers.Get(id)
 }
 
-// AddServer adds a server to the state
+// AddServer adds a server to the state or updates it
 func (s *State) AddServer(se *types.Server) error {
 	return s.Servers.Set(se.Id, se)
 }
@@ -64,7 +64,7 @@ func (s *State) GetChannel(id string) (*types.Channel, error) {
 	return s.Channels.Get(id)
 }
 
-// AddChannel adds a channel to the state
+// AddChannel adds a channel to the state or updates it
 func (s *State) AddChannel(c *types.Channel) error {
 	return s.Channels.Set(c.Id, c)
 }
@@ -81,7 +81,7 @@ func (s *State) GetMember(serverId, userId string) (*types.Member, error) {
 	return s.Members.Get(serverId + "/" + userId)
 }
 
-// AddMember adds a member to the state
+// AddMember adds a member to the state or updates it
 func (s *State) AddMember(m *types.Member) error {
 	return s.Members.Set(m.Id.Server+"/"+m.Id.User, m)
 }
@@ -98,7 +98,7 @@ func (s *State) GetEmoji(id string) (*types.Emoji, error) {
 	return s.Emojis.Get(id)
 }
 
-// AddEmoji adds an emoji to the state
+// AddEmoji adds an emoji to the state or updates it
 func (s *State) AddEmoji(e *types.Emoji) error {
 	return s.Emojis.Set(e.Id, e)
 }
