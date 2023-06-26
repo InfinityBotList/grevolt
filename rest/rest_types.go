@@ -62,7 +62,7 @@ type RestConfig struct {
 // DefaultRestConfig is the default configuration for the client
 func DefaultRestConfig() RestConfig {
 	return RestConfig{
-		APIUrl:      RevoltAPI, // RevoltAPIStaging,
+		APIUrl:      RevoltAPIStaging,
 		Timeout:     10 * time.Second,
 		Ratelimiter: ratelimits.NewRatelimiter(),
 		OnRatelimit: func(r *types.RateLimit) {

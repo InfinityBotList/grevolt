@@ -5,7 +5,7 @@ import "github.com/infinitybotlist/grevolt/types"
 // Work in progress, not well documented
 type MessageAppendData struct {
 	// Embeds in the message
-	Embeds []types.Embed `json:"embeds,omitempty"`
+	Embeds []*types.MessageEmbed `json:"embeds,omitempty"`
 }
 
 type MessageAppend struct {

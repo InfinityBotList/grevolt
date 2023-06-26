@@ -32,44 +32,8 @@ func (e APIError) Type() string {
 	return typ.(string)
 }
 
-// Channel struct.
-type Channel struct {
-	Id                 string                    `json:"_id,omitempty"`
-	ChannelType        ChannelType               `json:"channel_type,omitempty"`
-	UserId             string                    `json:"user,omitempty"`
-	Nonce              string                    `json:"nonce,omitempty"`
-	Active             bool                      `json:"active,omitempty"`
-	Recipients         []string                  `json:"recipients,omitempty"`
-	LastMessageID      string                    `json:"last_message_id,omitempty"`
-	Name               string                    `json:"name,omitempty"`
-	OwnerId            string                    `json:"owner,omitempty"`
-	Description        string                    `json:"description,omitempty"`
-	Icon               *File                     `json:"icon,omitempty"`
-	DefaultPermissions *OverrideField            `json:"default_permissions,omitempty"`
-	RolePermissions    map[string]*OverrideField `json:"role_permissions,omitempty"`
-	Permissions        uint                      `json:"permissions,omitempty"`
-	NSFW               bool                      `json:"nsfw,omitempty"`
-}
-
 type PatchOverrideField struct {
 	Permissions *Override `json:"permissions"`
-}
-
-type ChannelList []Channel
-
-type ChannelType string
-
-// List of ChannelType
-const (
-	TEXT_ChannelType  ChannelType = "Text"
-	VOICE_ChannelType ChannelType = "Voice"
-)
-
-type DataInviteBot struct {
-	// Server Id
-	Server string `json:"server,omitempty"`
-	// Group id
-	Group string `json:"group,omitempty"`
 }
 
 // FieldsWebhook : Optional fields on webhook object
@@ -107,10 +71,6 @@ type CreateInviteResponseInvite struct {
 	Server string `json:"server,omitempty"`
 }
 
-// Rate limit struct
-type RateLimit struct {
-	RetryAfter int64 `json:"retry_after"`
-}
 type AccountInfo struct {
 	Id    string `json:"_id"`
 	Email string `json:"email"`
@@ -142,10 +102,6 @@ type ChannelUnreadId struct {
 	Channel string `json:"channel"`
 	// User Id
 	User string `json:"user"`
-}
-
-// Local time
-type CollectionStatsLocalTime struct {
 }
 
 // Query exec stats
@@ -200,16 +156,6 @@ type DataCreateEmojiParent struct {
 type DataEditReportStatus struct {
 }
 
-// System message configuration
-
-// New user profile data  This is applied as a partial.
-type DataEditUserProfile struct {
-	// Text to set as user profile description
-	Content string `json:"content,omitempty"`
-	// Attachment Id for background
-	Background string `json:"background,omitempty"`
-}
-
 // New user status
 
 // Timestamp this member is timed out until
@@ -234,62 +180,6 @@ type DataSetServerRolePermissionPermissions struct {
 	Allow uint64 `json:"allow"`
 	// Disallow bit flags
 	Deny uint64 `json:"deny"`
-}
-
-// Bot object
-type FetchBotResponseBot struct {
-	// Bot Id  This equals the associated bot user's id.
-	Id string `json:"_id"`
-	// User Id of the bot owner
-	Owner string `json:"owner"`
-	// Token used to authenticate requests for this bot
-	Token string `json:"token"`
-	// Whether the bot is public (may be invited by anyone)
-	Public bool `json:"public"`
-	// Whether to enable analytics
-	Analytics bool `json:"analytics,omitempty"`
-	// Whether this bot should be publicly discoverable
-	Discoverable bool `json:"discoverable,omitempty"`
-	// Reserved; URL for handling interactions
-	InteractionsUrl string `json:"interactions_url,omitempty"`
-	// URL for terms of service
-	TermsOfServiceUrl string `json:"terms_of_service_url,omitempty"`
-	// URL for privacy policy
-	PrivacyPolicyUrl string `json:"privacy_policy_url,omitempty"`
-	// Enum of bot flags
-	Flags uint64 `json:"flags,omitempty"`
-}
-
-// User object
-type FetchBotResponseUser struct {
-	// Unique Id
-	Id string `json:"_id"`
-	// Username
-	Username string `json:"username"`
-	// Discriminator
-	Discriminator string `json:"discriminator"`
-	// Display name
-	DisplayName string `json:"display_name,omitempty"`
-	// Avatar attachment
-	Avatar *File `json:"avatar,omitempty"`
-	// Relationships with other users
-	Relations []Relationship `json:"relations,omitempty"`
-	// Bitfield of user badges
-	Badges uint64 `json:"badges,omitempty"`
-	// User's current status
-	Status *UserStatus `json:"status,omitempty"`
-	// User's profile page
-	Profile *UserProfile `json:"profile,omitempty"`
-	// Enum of user flags
-	Flags uint64 `json:"flags,omitempty"`
-	// Whether this user is privileged
-	Privileged bool `json:"privileged,omitempty"`
-	// Bot information
-	Bot *BotInformation `json:"bot,omitempty"`
-	// Current session user's relationship with this user
-	Relationship *RelationshipStatus `json:"relationship,omitempty"`
-	// Whether this user is currently online
-	Online bool `json:"online,omitempty"`
 }
 
 // Parsed metadata of this file
@@ -456,12 +346,6 @@ type SnapshotWithContextServer struct {
 
 // Avatar attachment
 
-// Bot information
-type UserBot struct {
-	// Id of the owner of this bot
-	Owner string `json:"owner"`
-}
-
 type BanListResult struct {
 	// Users objects
 	Users []BannedUser `json:"users"`
@@ -486,30 +370,6 @@ type BannedUser struct {
 	Username string `json:"username"`
 	// Avatar of the banned user
 	Avatar *File `json:"avatar,omitempty"`
-}
-
-// Representation of a bot on Revolt
-type Bot struct {
-	// Bot Id  This equals the associated bot user's id.
-	Id string `json:"_id"`
-	// User Id of the bot owner
-	Owner string `json:"owner"`
-	// Token used to authenticate requests for this bot
-	Token string `json:"token"`
-	// Whether the bot is public (may be invited by anyone)
-	Public bool `json:"public"`
-	// Whether to enable analytics
-	Analytics bool `json:"analytics,omitempty"`
-	// Whether this bot should be publicly discoverable
-	Discoverable bool `json:"discoverable,omitempty"`
-	// Reserved; URL for handling interactions
-	InteractionsUrl string `json:"interactions_url,omitempty"`
-	// URL for terms of service
-	TermsOfServiceUrl string `json:"terms_of_service_url,omitempty"`
-	// URL for privacy policy
-	PrivacyPolicyUrl string `json:"privacy_policy_url,omitempty"`
-	// Enum of bot flags
-	Flags uint64 `json:"flags,omitempty"`
 }
 
 // Bot information for if the user is a bot
@@ -565,7 +425,7 @@ type CollectionStats struct {
 	// Namespace
 	Ns string `json:"ns"`
 	// Local time
-	LocalTime *CollectionStatsLocalTime `json:"localTime"`
+	LocalTime timestamp.Timestamp `json:"localTime"`
 	// Latency stats
 	LatencyStats map[string]LatencyStats `json:"latencyStats"`
 	// Query exec stats
@@ -805,29 +665,9 @@ type DataEditSession struct {
 	FriendlyName string `json:"friendly_name"`
 }
 
-type DataEditUser struct {
-	// New display name
-	DisplayName string `json:"display_name,omitempty"`
-	// Attachment Id for avatar
-	Avatar string `json:"avatar,omitempty"`
-	// New user status
-	Status *UserStatus `json:"status,omitempty"`
-	// New user profile data  This is applied as a partial.
-	Profile *DataEditUserProfile `json:"profile,omitempty"`
-	// Bitfield of user badges
-	Badges uint64 `json:"badges,omitempty"`
-	// Enum of user flags
-	Flags uint64 `json:"flags,omitempty"`
-	// Fields to remove from user object
-	Remove []FieldsUser `json:"remove,omitempty"`
-}
-
 type DataHello struct {
 	// Whether onboarding is required
 	Onboarding bool `json:"onboarding"`
-}
-
-type DataLogin struct {
 }
 
 type DataMemberEdit struct {
@@ -893,10 +733,6 @@ type DataSetServerRolePermission struct {
 	Permissions *DataSetServerRolePermissionPermissions `json:"permissions"`
 }
 
-// Embed
-type Embed struct {
-}
-
 // Representation of an Emoji on Revolt
 type Emoji struct {
 	// Unique Id
@@ -926,26 +762,9 @@ type Feature struct {
 	Url string `json:"url"`
 }
 
-// Bot Response
-type FetchBotResponse struct {
-	// Bot object
-	Bot *FetchBotResponseBot `json:"bot"`
-	// User object
-	User *FetchBotResponseUser `json:"user"`
-}
-
 type FetchServerResponse struct {
 	Server
 }
-
-// FieldsBot : Optional fields on bot object
-type FieldsBot string
-
-// List of FieldsBot
-const (
-	TOKEN_FieldsBot            FieldsBot = "Token"
-	INTERACTIONS_URL_FieldsBot FieldsBot = "InteractionsURL"
-)
 
 // FieldsChannel : Optional fields on channel object
 type FieldsChannel string
@@ -1228,14 +1047,6 @@ type OverrideField struct {
 	D uint64 `json:"d"`
 }
 
-// Both lists are sorted by their IDs.
-type OwnedBotsResponse struct {
-	// Bot objects
-	Bots []Bot `json:"bots"`
-	// User objects
-	Users []User `json:"users"`
-}
-
 // Permission : Permission value on Revolt  This should be restricted to the lower 52 bits to prevent any potential issues with Javascript. Also leave empty spaces for future permission flags to be added.
 type PermissionFriendly string
 
@@ -1273,30 +1084,6 @@ const (
 	GRANT_ALL_SAFE_PermissionFriendly       PermissionFriendly = "GrantAllSafe"
 	GRANT_ALL_PermissionFriendly            PermissionFriendly = "GrantAll"
 )
-
-// Presence : Presence status
-type Presence string
-
-// List of Presence
-const (
-	ONLINE_Presence    Presence = "Online"
-	IDLE_Presence      Presence = "Idle"
-	FOCUS_Presence     Presence = "Focus"
-	BUSY_Presence      Presence = "Busy"
-	INVISIBLE_Presence Presence = "Invisible"
-)
-
-// Public Bot
-type PublicBot struct {
-	// Bot Id
-	Id string `json:"_id"`
-	// Bot Username
-	Username string `json:"username"`
-	// Profile Avatar
-	Avatar string `json:"avatar"`
-	// Profile Description
-	Description string `json:"description"`
-}
 
 // Collection query execution stats
 type QueryExecStats struct {
@@ -1410,16 +1197,6 @@ type Role struct {
 	Rank uint64 `json:"rank,omitempty"`
 }
 
-// Representation of a text embed before it is sent.
-type SendableEmbed struct {
-	IconUrl     string `json:"icon_url,omitempty"`
-	Url         string `json:"url,omitempty"`
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
-	Media       string `json:"media,omitempty"`
-	Colour      string `json:"colour,omitempty"`
-}
-
 // Representation of a server on Revolt
 type Server struct {
 	// Unique Id
@@ -1519,64 +1296,6 @@ const (
 	CLIP_TwitchType    TwitchType = "Clip"
 )
 
-// Representiation of a User on Revolt.
-type User struct {
-	// Unique Id
-	Id string `json:"_id"`
-	// Username
-	Username string `json:"username"`
-	// Discriminator
-	Discriminator string `json:"discriminator"`
-	// Display name
-	DisplayName string `json:"display_name,omitempty"`
-	// Avatar attachment
-	Avatar *File `json:"avatar,omitempty"`
-	// Relationships with other users
-	Relations []Relationship `json:"relations,omitempty"`
-	// Bitfield of user badges
-	Badges uint64 `json:"badges,omitempty"`
-	// User's current status
-	Status *UserStatus `json:"status,omitempty"`
-	// User's profile page
-	Profile *UserProfile `json:"profile,omitempty"`
-	// Enum of user flags
-	Flags uint64 `json:"flags,omitempty"`
-	// Whether this user is privileged
-	Privileged bool `json:"privileged,omitempty"`
-	// Bot information
-	Bot *UserBot `json:"bot,omitempty"`
-	// Current session user's relationship with this user
-	Relationship string `json:"relationship,omitempty"`
-	// Whether this user is currently online
-	Online bool `json:"online,omitempty"`
-}
-
-// UserPermission : User permission definitions
-type UserPermission string
-
-// List of UserPermission
-const (
-	ACCESS_UserPermission       UserPermission = "Access"
-	VIEW_PROFILE_UserPermission UserPermission = "ViewProfile"
-	SEND_MESSAGE_UserPermission UserPermission = "SendMessage"
-	INVITE_UserPermission       UserPermission = "Invite"
-)
-
-// User's profile
-type UserProfile struct {
-	// Text content on user's profile
-	Content string `json:"content,omitempty"`
-	// Background visible on user's profile
-	Background *File `json:"background,omitempty"`
-}
-
-type UserProfileData struct {
-	// Text to set as user profile description
-	Content string `json:"content,omitempty"`
-	// Attachment Id for background
-	Background string `json:"background,omitempty"`
-}
-
 // UserReportReason : Reason for reporting a user
 type UserReportReason string
 
@@ -1590,14 +1309,6 @@ const (
 	BAN_EVASION_UserReportReason           UserReportReason = "BanEvasion"
 	UNDERAGE_UserReportReason              UserReportReason = "Underage"
 )
-
-// User's active status
-type UserStatus struct {
-	// Custom status text
-	Text string `json:"text,omitempty"`
-	// Current presence option
-	Presence Presence `json:"presence,omitempty"`
-}
 
 // Video
 type Video struct {

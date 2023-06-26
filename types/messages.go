@@ -155,7 +155,7 @@ type Message struct {
 	// Time at which this message was last edited
 	Edited timestamp.Timestamp `json:"edited,omitempty"`
 	// Attached embeds to this message
-	Embeds []Embed `json:"embeds,omitempty"`
+	Embeds []*MessageEmbed `json:"embeds,omitempty"`
 	// Array of user ids mentioned in this message
 	Mentions []string `json:"mentions,omitempty"`
 	// Array of message ids this message is replying to

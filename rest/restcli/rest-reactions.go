@@ -1,3 +1,4 @@
+// +interactions <in docs but its actually reactions>
 package restcli
 
 import (

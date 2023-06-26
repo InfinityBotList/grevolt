@@ -22,9 +22,13 @@ Concurrent map writes in Go are not allowed making such libraries highly infeasi
 
 Run ``go test -v ./...`` to test stuff
 
-# TODO
+## TODO
 
 - Better usage examples
 - Command handling framework
+
+## Credits
+
+- https://github.com/sentinelb51/revoltgo for some models (embeds)
 
 **Heavy work in progress**

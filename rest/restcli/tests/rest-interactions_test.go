@@ -36,3 +36,15 @@ func TestRemoveReactionsToMessage(t *testing.T) {
 
 	t.Log("successfully added reaction")
 }
+
+func TestRemoveAllReactionsFromMessage(t *testing.T) {
+	cli := ITestStartup(t)
+
+	err := cli.Rest.RemoveAllReactionsFromMessage(ReactionChannel, ReactionMessage)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log("successfully added reaction")
+}
