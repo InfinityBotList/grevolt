@@ -2,21 +2,11 @@ package events
 
 import "github.com/infinitybotlist/grevolt/types"
 
-type ServerMemberUpdateData struct {
-	// Server Id
-	ServerId string `json:"server"`
-
-	// User Id
-	//
-	// <in reality, the member id>
-	UserId string `json:"user"`
-}
-
 type ServerMemberUpdate struct {
 	Event
 
 	// Ids
-	Id *ServerMemberUpdateData `json:"id"`
+	Id *types.MemberId `json:"id"`
 
 	// Partial server member object, not all data is available
 	//

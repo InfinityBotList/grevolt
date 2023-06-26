@@ -3,9 +3,15 @@ package diff
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/infinitybotlist/grevolt/types"
 )
 
-// Note: PartialUpdate updates to
+// Applies all non-nil fields from new to to, thus creating a partial update
+//
+// Note: PartialUpdate updates to as well in the process
+//
+// As such, this function *modifies* the to object itself
 func PartialUpdate[T any](to *T, new *T) *T {
 	return partialUpdateImpl(to, new).(*T)
 }
@@ -17,6 +23,11 @@ func partialUpdateImpl(to any, new any) any {
 	toVal := reflect.ValueOf(to).Elem()
 	newVal := reflect.ValueOf(new).Elem()
 
+	// Check if newVal is zero value
+	if newVal.IsZero() {
+		return to
+	}
+
 	for i := 0; i < toVal.NumField(); i++ {
 		// Get the to field
 		toField := toVal.Field(i)
@@ -24,26 +35,26 @@ func partialUpdateImpl(to any, new any) any {
 		// Get the new field
 		newField := newVal.Field(i)
 
-		if toField.Kind() == reflect.Ptr {
-			// Indirect the pointer if it's not nil
-			if !toField.IsNil() {
-				toField = toField.Elem()
-			}
-		}
+		var set reflect.Value
 
-		if newField.Kind() == reflect.Ptr {
-			// Ensure we aren't nil?
-			//
-			// We can skip this field if it's nil
+		switch newField.Kind() {
+		case reflect.Ptr:
+			// Pointers are painful, lets indirect, and recurse through this function
+			// again
+
+			// Check if it's nil
 			if newField.IsNil() {
 				continue
 			}
 
-			// Indirect the pointer
-			newField = newField.Elem()
-		}
+			if newField.IsZero() {
+				continue
+			}
 
-		switch newField.Kind() {
+			switch newField.Elem().Kind() {
+			case reflect.Struct:
+				set = newField
+			}
 		case reflect.Struct:
 			// Recursively apply a partial update here too
 
@@ -51,23 +62,15 @@ func partialUpdateImpl(to any, new any) any {
 			f := partialUpdateImpl(toField.Addr().Interface(), newField.Addr().Interface())
 
 			// Set the field
-			if toField.CanSet() {
-				toField.Set(reflect.ValueOf(f))
-			} else {
-				panic("can't set field")
-			}
+			set = reflect.ValueOf(f)
 		case reflect.Slice:
 			// Ensure len of slice of new is greater than 0 and not nil
 			if newField.Len() > 0 && !newField.IsNil() {
 				// Get type of field
-				f := partialUpdateImpl(toField.Addr().Interface(), newField.Addr().Interface())
+				f := partialUpdateImpl(toField.Interface(), newField.Interface())
 
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(f))
-				} else {
-					panic("can't set field")
-				}
+				set = reflect.ValueOf(f)
 			}
 		case reflect.Map:
 			// Ensure len of map of new is greater than 0 and not nil
@@ -76,111 +79,66 @@ func partialUpdateImpl(to any, new any) any {
 				f := partialUpdateImpl(toField.Addr().Interface(), newField.Addr().Interface())
 
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(f))
-				} else {
-					panic("can't set field")
-				}
+				set = reflect.ValueOf(f)
 			}
 		case reflect.Interface:
 			// Get type of field
-			f := partialUpdateImpl(toField.Addr().Interface(), newField.Addr().Interface())
+			interf := newField.Interface()
+
+			// Check if it's nil
+			if interf == nil {
+				continue
+			}
 
 			// Set the field
-			if toField.CanSet() {
-				toField.Set(reflect.ValueOf(f))
-			} else {
-				panic("can't set field")
-			}
+			set = newField
 		case reflect.String:
 			// Check that string is not empty in new
 
 			// As the string may be a type alias, we need to get the underlying type
 			// and check if it's empty
+			fieldType := newField.Type()
 
-			// Get the string as a string, we can't do .Interface().(string) as may be a type alias
-			str := fmt.Sprintf("%v", newField.Interface())
+			str := newField.Convert(fieldType).Interface().(string)
 
 			if str != "" {
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(str))
-				} else {
-					panic("can't set field")
-				}
+				set = newField
 			}
 		case reflect.Bool:
 			// Only set field if its an update
 			if newField.Interface().(bool) {
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(true))
-				} else {
-					panic("can't set field")
-				}
+				set = newField
 			}
-		case reflect.Int:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			// Only set field if its nonzero
-			if newField.Interface().(int) != 0 {
+			if newField.Int() != 0 {
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(newField.Interface().(int)))
-				} else {
-					panic("can't set field")
-				}
+				set = newField
 			}
-		case reflect.Int64:
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			// Only set field if its nonzero
-			if newField.Interface().(int64) != 0 {
+			if newField.Uint() != 0 {
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(newField.Interface().(int64)))
-				} else {
-					panic("can't set field")
-				}
+				set = newField
 			}
-		case reflect.Uint:
+		case reflect.Float64, reflect.Float32:
 			// Only set field if its nonzero
-			if newField.Interface().(uint) != 0 {
+			if newField.Float() != 0 {
 				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(newField.Interface().(uint)))
-				} else {
-					panic("can't set field")
-				}
-			}
-		case reflect.Uint64:
-			// Only set field if its nonzero
-			if newField.Interface().(uint64) != 0 {
-				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(newField.Interface().(uint64)))
-				} else {
-					panic("can't set field")
-				}
-			}
-		case reflect.Float64:
-			// Only set field if its nonzero
-			if newField.Interface().(float64) != 0 {
-				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(newField.Interface().(float64)))
-				} else {
-					panic("can't set field")
-				}
-			}
-		case reflect.Float32:
-			// Only set field if its nonzero
-			if newField.Interface().(float32) != 0 {
-				// Set the field
-				if toField.CanSet() {
-					toField.Set(reflect.ValueOf(newField.Interface().(float32)))
-				} else {
-					panic("can't set field")
-				}
+				set = newField
 			}
 		default:
 			panic("unknown type:" + toField.Kind().String() + fmt.Sprint(toField))
+		}
+
+		if set.IsValid() {
+			if toField.CanSet() {
+				toField.Set(set)
+			} else {
+				panic("can't set field")
+			}
 		}
 	}
 
@@ -191,6 +149,7 @@ type testStruct struct {
 	Str  string
 	Meow string
 	ABC  int
+	DEF  *types.OverrideField
 }
 
 func init() {
@@ -203,6 +162,9 @@ func init() {
 	var new = testStruct{
 		Str: "world",
 		ABC: 456,
+		DEF: &types.OverrideField{
+			A: 1,
+		},
 	}
 
 	fmt.Println(PartialUpdate(&to, &new))

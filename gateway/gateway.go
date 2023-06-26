@@ -195,6 +195,9 @@ type GatewayClient struct {
 	// worry about that.
 	SharedState *state.State
 
+	// Whether to disable websocket-based caching
+	DisableCache bool
+
 	// Event handlers, set these to handle events
 	EventHandlers EventHandlers
 
