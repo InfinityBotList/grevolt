@@ -96,6 +96,9 @@ type Request[T any] struct {
 	Headers map[string]string
 	Cookies []http.Cookie
 
+	// Initial response, if any
+	InitialResp *T
+
 	// Sequence number for this request, internal
 	sequence int
 

@@ -1,6 +1,10 @@
 package types
 
-import "github.com/infinitybotlist/grevolt/types/timestamp"
+import (
+	"encoding/json"
+
+	"github.com/infinitybotlist/grevolt/types/timestamp"
+)
 
 // MessageSort : Sort used for retrieving messages
 type MessageSort string
@@ -11,8 +15,6 @@ const (
 	LATEST_MessageSort    MessageSort = "Latest"
 	OLDEST_MessageSort    MessageSort = "Oldest"
 )
-
-type MessageList []*Message
 
 // Filter and sort messages by time
 type MessageQuery struct {
@@ -36,6 +38,9 @@ type MessageQuery struct {
 	// It will also take half of limit rounded as the limits to each side.
 	// It also fetches the message ID specified.
 	Nearby string `json:"nearby,omitempty"`
+
+	// Whether to include user (and member, if server channel) objects
+	IncludeUsers bool `json:"include_users,omitempty"`
 }
 
 // Filter and sort messages
@@ -64,20 +69,68 @@ type MessageSearchQuery struct {
 	Sort MessageSort `json:"sort,omitempty"`
 
 	// Whether to include user (and member, if server channel) objects
-	//
-	// <this is ignored by grevolt as they return differing types>
-	IncludeUsers bool `json:"include_users,omitempty"`
+	IncludeUsers bool `json:"include_users"`
 }
 
-type MessageFetchExtendedResponse struct {
+// Note that this struct is used for both include_users and no_include_users
+type MessageFetchResponse struct {
+	// Whether to include user (and member, if server channel) objects, used internally by MarshalJSON/UnmarshalJSON
+	IncludeUsers bool
+
 	// List of messages
-	Messages []Message `json:"messages,omitempty"`
+	Messages []*Message `json:"messages,omitempty"`
 
-	// List of users
-	Users []User `json:"users,omitempty"`
+	// List of users, only set if IncludeUsers is true
+	Users []*User `json:"users,omitempty"`
 
-	// List of members
-	Members []Member `json:"members,omitempty"`
+	// List of members, only set if IncludeUsers is true
+	Members []*Member `json:"members,omitempty"`
+}
+
+func (m *MessageFetchResponse) UnmarshalJSON(data []byte) error {
+	if m.IncludeUsers {
+		var d struct {
+			Messages []*Message `json:"messages,omitempty"`
+			Users    []*User    `json:"users,omitempty"`
+			Members  []*Member  `json:"members,omitempty"`
+		}
+		if err := json.Unmarshal(data, &d); err != nil {
+			return err
+		}
+		m.Messages = d.Messages
+		m.Users = d.Users
+		m.Members = d.Members
+		m.IncludeUsers = true
+		return nil
+	} else {
+		var d []*Message
+
+		if err := json.Unmarshal(data, &d); err != nil {
+			return err
+		}
+
+		m.Messages = d
+
+		return nil
+	}
+}
+
+func (m *MessageFetchResponse) MarshalJSON() ([]byte, error) {
+	if m.IncludeUsers {
+		aux := struct {
+			Messages []*Message `json:"messages,omitempty"`
+			Users    []*User    `json:"users,omitempty"`
+			Members  []*Member  `json:"members,omitempty"`
+		}{
+			Messages: m.Messages,
+			Users:    m.Users,
+			Members:  m.Members,
+		}
+
+		return json.Marshal(&aux)
+	} else {
+		return json.Marshal(m.Messages)
+	}
 }
 
 // Message : A message sent in a channel

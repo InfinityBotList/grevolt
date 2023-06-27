@@ -18,17 +18,18 @@ func (c *RestClient) AcknowledgeMessage(target, message string) error {
 }
 
 // Fetch multiple messages.
-//
-// <official docs provide this as one endpoint, but they return two different types>
-//
-// include_users=false
-func (c *RestClient) FetchMessagesNoIncludeUsers(target string, q *types.MessageQuery) (*types.MessageList, error) {
+func (c *RestClient) FetchMessages(target string, q *types.MessageQuery) (*types.MessageFetchResponse, error) {
 	if q == nil {
 		q = &types.MessageQuery{}
 	}
 
-	params := []string{
-		"include_users=false",
+	params := []string{}
+
+	var iresp = &types.MessageFetchResponse{}
+
+	if q.IncludeUsers {
+		iresp.IncludeUsers = true
+		params = append(params, "include_users=true")
 	}
 
 	runIf(q.Limit > 0, func() {
@@ -47,40 +48,7 @@ func (c *RestClient) FetchMessagesNoIncludeUsers(target string, q *types.Message
 		params = append(params, "nearby="+q.Nearby)
 	})
 
-	return rest.Request[types.MessageList]{Path: "channels/" + target + "/messages?" + strings.Join(params, "&")}.With(&c.Config)
-}
-
-// Fetch multiple messages.
-//
-// <official docs provide this as one endpoint, but they return two different types>
-//
-// include_users=true
-func (c *RestClient) FetchMessagesIncludeUsers(target string, q *types.MessageQuery) (*types.MessageFetchExtendedResponse, error) {
-	if q == nil {
-		q = &types.MessageQuery{}
-	}
-
-	params := []string{
-		"include_users=true",
-	}
-
-	runIf(q.Limit > 0, func() {
-		params = append(params, "limit="+strconv.FormatInt(int64(q.Limit), 10))
-	})
-	runIf(q.Before != "", func() {
-		params = append(params, "before="+q.Before)
-	})
-	runIf(q.After != "", func() {
-		params = append(params, "after="+q.After)
-	})
-	runIf(q.Sort != "", func() {
-		params = append(params, "sort="+string(q.Sort))
-	})
-	runIf(q.Nearby != "", func() {
-		params = append(params, "nearby="+q.Nearby)
-	})
-
-	return rest.Request[types.MessageFetchExtendedResponse]{Path: "channels/" + target + "/messages?" + strings.Join(params, "&")}.With(&c.Config)
+	return rest.Request[types.MessageFetchResponse]{Path: "channels/" + target + "/messages?" + strings.Join(params, "&"), InitialResp: iresp}.With(&c.Config)
 }
 
 // Sends a message to the given channel.
@@ -94,30 +62,15 @@ func (c *RestClient) SendMessage(target string, d *types.DataMessageSend) (*type
 //
 // <official docs provide this as one endpoint, but they return two different types>
 //
-// include_users=false
-func (c *RestClient) SearchForMessagesNoIncludeUsers(target string, q *types.MessageSearchQuery) (*types.MessageList, error) {
-	if q == nil {
-		return nil, errors.New("query cannot be nil")
-	}
-
-	q.IncludeUsers = false // Override, must be false when using NoIncludeUsers
-	return rest.Request[types.MessageList]{Method: rest.POST, Path: "channels/" + target + "/search", Json: q}.With(&c.Config)
-}
-
-// This route searches for messages within the given parameters.
-//
-// <in actual tests, this endpoint is very slow and takes a long time to respond>
-//
-// <official docs provide this as one endpoint, but they return two different types>
-//
 // include_users=true
-func (c *RestClient) SearchForMessagesIncludeUsers(target string, q *types.MessageSearchQuery) (*types.MessageFetchExtendedResponse, error) {
+func (c *RestClient) SearchForMessages(target string, q *types.MessageSearchQuery) (*types.MessageFetchResponse, error) {
 	if q == nil {
 		return nil, errors.New("query cannot be nil")
 	}
 
-	q.IncludeUsers = true // Override, must be true when using IncludeUsers
-	return rest.Request[types.MessageFetchExtendedResponse]{Method: rest.POST, Path: "channels/" + target + "/search", Json: q}.With(&c.Config)
+	var iresp = &types.MessageFetchResponse{IncludeUsers: q.IncludeUsers}
+
+	return rest.Request[types.MessageFetchResponse]{Method: rest.POST, Path: "channels/" + target + "/search", Json: q, InitialResp: iresp}.With(&c.Config)
 }
 
 // This route returns any changed message objects and tells you if any have been deleted.

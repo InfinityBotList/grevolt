@@ -9,11 +9,11 @@ import (
 
 func TestMessages(t *testing.T) {
 	t.Run("AcknowledgeMessage", testAcknowledgeMessage)
-	t.Run("FetchMessagesNoIncludeUsers", testFetchMessagesNoIncludeUsers)
-	t.Run("FetchMessagesIncludeUsers", testFetchMessagesIncludeUsers)
+	t.Run("FetchMessages.NoIncludeUsers", testFetchMessagesNoIncludeUsers)
+	t.Run("FetchMessages.IncludeUsers", testFetchMessagesIncludeUsers)
 	t.Run("SendMessage", testSendMessage)
-	t.Run("SearchForMessagesNoIncludeUsers", testSearchForMessagesNoIncludeUsers)
-	t.Run("SearchForMessagesIncludeUsers", testSearchForMessagesIncludeUsers)
+	t.Run("SearchForMessages.NoIncludeUsers", testSearchForMessagesNoIncludeUsers)
+	t.Run("SearchForMessages.IncludeUsers", testSearchForMessagesIncludeUsers)
 	t.Run("PollMessageChanges", testPollMessageChanges)
 	t.Run("FetchMessage", testFetchMessage)
 	t.Run("EditMessage", testEditMessage)
@@ -37,36 +37,10 @@ func testFetchMessagesNoIncludeUsers(t *testing.T) {
 	// Fetch channel
 	cli := ITestStartup(t)
 
-	list, err := cli.Rest.FetchMessagesNoIncludeUsers(TestChannel, &types.MessageQuery{
-		Limit:  10,
-		Before: TestMessage,
-	})
-
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	if list == nil {
-		t.Error("list is nil but should not be")
-		return
-	}
-
-	if len(*list) == 0 {
-		t.Error("list is empty but should not be")
-		return
-	}
-
-	t.Log("Fetched", len(*list), "messages")
-}
-
-func testFetchMessagesIncludeUsers(t *testing.T) {
-	// Fetch channel
-	cli := ITestStartup(t)
-
-	list, err := cli.Rest.FetchMessagesIncludeUsers(TestChannel, &types.MessageQuery{
-		Limit:  10,
-		Before: TestMessage,
+	list, err := cli.Rest.FetchMessages(TestChannel, &types.MessageQuery{
+		Limit:        10,
+		Before:       TestMessage,
+		IncludeUsers: false,
 	})
 
 	if err != nil {
@@ -80,6 +54,34 @@ func testFetchMessagesIncludeUsers(t *testing.T) {
 	}
 
 	if len(list.Messages) == 0 {
+		t.Error("msglist is empty but should not be")
+		return
+	}
+
+	t.Log("Fetched", len(list.Messages), "messages")
+}
+
+func testFetchMessagesIncludeUsers(t *testing.T) {
+	// Fetch channel
+	cli := ITestStartup(t)
+
+	list, err := cli.Rest.FetchMessages(TestChannel, &types.MessageQuery{
+		Limit:        10,
+		Before:       TestMessage,
+		IncludeUsers: true,
+	})
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if list == nil {
+		t.Error("list is nil but should not be")
+		return
+	}
+
+	if len(list.Users) == 0 {
 		t.Error("list is empty but should not be")
 		return
 	}
@@ -111,13 +113,14 @@ func testSendMessage(t *testing.T) {
 
 }
 
-func testSearchForMessagesNoIncludeUsers(t *testing.T) {
+func testSearchForMessagesIncludeUsers(t *testing.T) {
 	// Fetch channel
 	cli := ITestStartup(t)
 
-	msgs, err := cli.Rest.SearchForMessagesNoIncludeUsers(TestChannel, &types.MessageSearchQuery{
-		Limit: 10,
-		Query: "Hello, world!",
+	msgs, err := cli.Rest.SearchForMessages(TestChannel, &types.MessageSearchQuery{
+		Limit:        10,
+		Query:        "Hello, world!",
+		IncludeUsers: true,
 	})
 
 	if err != nil {
@@ -130,16 +133,16 @@ func testSearchForMessagesNoIncludeUsers(t *testing.T) {
 		return
 	}
 
-	t.Log("Msg count:", len(*msgs))
+	t.Log("Msg count:", len(msgs.Messages))
 }
-
-func testSearchForMessagesIncludeUsers(t *testing.T) {
+func testSearchForMessagesNoIncludeUsers(t *testing.T) {
 	// Fetch channel
 	cli := ITestStartup(t)
 
-	msgs, err := cli.Rest.SearchForMessagesIncludeUsers(TestChannel, &types.MessageSearchQuery{
-		Limit: 10,
-		Query: "Hello, world!",
+	msgs, err := cli.Rest.SearchForMessages(TestChannel, &types.MessageSearchQuery{
+		Limit:        10,
+		Query:        "Hello, world!",
+		IncludeUsers: false,
 	})
 
 	if err != nil {

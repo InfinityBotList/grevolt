@@ -169,6 +169,10 @@ func (r Request[T]) With(config *RestConfig) (*T, error) {
 			return &res, nil
 		}
 
+		if r.InitialResp != nil {
+			v = *r.InitialResp
+		}
+
 		err = json.NewDecoder(resp.Body).Decode(&v)
 
 		if err != nil {
