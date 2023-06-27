@@ -225,12 +225,10 @@ func (w *GatewayClient) GatewayURL() string {
 	return gwUrl
 }
 
-// Prepares a websocket client
+// Prepares a websocket client. Use the Open() method on the websocket to open the websocket, this method is more internal
 //
-// # Use the Open() method on the websocket to open the websocket
-//
-// *You probably don't want to use this, as it is done for you when calling Open()*
-func (w *GatewayClient) PrepareWS() error {
+// # You probably don't want to use this, as it is done for you when calling Open()
+func (w *GatewayClient) Prepare() error {
 	if w.RestClient.Config.SessionToken == nil {
 		return errors.New("no session token provided")
 	}
@@ -257,7 +255,7 @@ func (w *GatewayClient) PrepareWS() error {
 // Opens a websocket connection to the gateway
 func (w *GatewayClient) Open() error {
 	if !w.Prepared {
-		err := w.PrepareWS()
+		err := w.Prepare()
 
 		if err != nil {
 			return err
