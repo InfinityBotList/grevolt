@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"os"
 	"time"
 
@@ -64,6 +63,7 @@ func New() Client {
 	c.Rest.Config.Logger = logger.Named("rest")
 	c.Rest.Config.Ratelimiter.Logger = logger.Named("ratelimiter")
 	c.Websocket.Logger = logger.Named("websocket")
+	c.Websocket.RestClient = c.Rest
 
 	return c
 }
@@ -73,34 +73,4 @@ func (c *Client) Authorize(token *auth.Token) {
 	// Rest client
 	c.Rest.Config.SessionToken = token
 	c.Websocket.SessionToken = token
-}
-
-// Prepares a websocket client
-//
-// # This does not open the websocket
-//
-// Use the Open() method on the websocket to open the websocket
-func (c *Client) PrepareWS() error {
-	if c.Rest.Config.SessionToken == nil {
-		return errors.New("no session token provided")
-	}
-
-	// Fetch the websocket URL
-	cfg, err := c.Rest.QueryNode()
-
-	if err != nil {
-		return err
-	}
-
-	// Set the websocket URL
-	c.Websocket.WSUrl = cfg.Ws
-
-	if c.Websocket.Logger == nil {
-		c.Websocket.Logger = c.Rest.Config.Logger
-	}
-
-	c.Websocket.RestClient = c.Rest
-	c.Websocket.Prepared = true
-
-	return nil
 }

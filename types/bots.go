@@ -9,6 +9,12 @@ const (
 	INTERACTIONS_URL_FieldsBot FieldsBot = "InteractionsURL"
 )
 
+// Bot information for if the user is a bot
+type BotInformation struct {
+	// Id of the owner of this bot
+	Owner string `json:"owner"`
+}
+
 // Representation of a bot on Revolt
 type Bot struct {
 	// Bot Id  This equals the associated bot user's id.

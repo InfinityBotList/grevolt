@@ -61,13 +61,6 @@ func main() {
 		},
 	})
 
-	// Prepare WS client
-	err = c.PrepareWS()
-
-	if err != nil {
-		panic(err)
-	}
-
 	// Use messagepack for encoding (better performance)
 	c.Websocket.Encoding = "msgpack"
 

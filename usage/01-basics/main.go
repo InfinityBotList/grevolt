@@ -56,13 +56,6 @@ func main() {
 
 	Client.Websocket.EventHandlers.Message = messageHandler
 
-	// Prepare the websocket
-	err = Client.PrepareWS()
-
-	if err != nil {
-		panic(err)
-	}
-
 	// Connect to the websocket
 	err = Client.Websocket.Open()
 

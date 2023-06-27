@@ -20,3 +20,14 @@ type MutualResponse struct {
 	// Array of mutual server IDs that both users are in
 	Servers []string `json:"servers"`
 }
+
+type DataSendFriendRequest struct {
+	// Username and discriminator combo separated by #
+	Username string `json:"username"`
+}
+
+// Relationship entry indicating current status with other user
+type Relationship struct {
+	Id     string              `json:"_id"`
+	Status *RelationshipStatus `json:"status"`
+}

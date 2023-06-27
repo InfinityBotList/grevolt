@@ -8,6 +8,6 @@ import (
 // Creates an invite to this channel.
 //
 // Channel must be a TextChannel.
-func (c *RestClient) CreateInvite(target string) (*types.CreateInviteResponseInvite, error) {
-	return rest.Request[types.CreateInviteResponseInvite]{Method: rest.POST, Path: "channels/" + target + "/invites"}.With(&c.Config)
+func (c *RestClient) CreateInvite(target string) (*types.Invite, error) {
+	return rest.Request[types.Invite]{Method: rest.POST, Path: "channels/" + target + "/invites"}.With(&c.Config)
 }

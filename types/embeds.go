@@ -127,6 +127,17 @@ const (
 	CHANNEL_LightspeedType LightspeedType = "Channel"
 )
 
+// BandcampType : Type of remote Bandcamp content
+//
+// <currently unused?>
+type BandcampType string
+
+// List of BandcampType
+const (
+	ALBUM_BandcampType BandcampType = "Album"
+	TRACK_BandcampType BandcampType = "Track"
+)
+
 // ImageSize : Image positioning and size
 //
 // <currently unused?>

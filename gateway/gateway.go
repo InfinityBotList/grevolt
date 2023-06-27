@@ -142,7 +142,7 @@ type GatewayCacher struct {
 type GatewayClient struct {
 	sync.Mutex
 
-	// Rest client, needed for certain future state features
+	// Rest client (required for cache as well as initial setup)
 	RestClient *restcli.RestClient
 
 	// Preparation state
@@ -225,10 +225,43 @@ func (w *GatewayClient) GatewayURL() string {
 	return gwUrl
 }
 
+// Prepares a websocket client
+//
+// # Use the Open() method on the websocket to open the websocket
+//
+// *You probably don't want to use this, as it is done for you when calling Open()*
+func (w *GatewayClient) PrepareWS() error {
+	if w.RestClient.Config.SessionToken == nil {
+		return errors.New("no session token provided")
+	}
+
+	// Fetch the websocket URL
+	cfg, err := w.RestClient.QueryNode()
+
+	if err != nil {
+		return err
+	}
+
+	// Set the websocket URL
+	w.WSUrl = cfg.Ws
+
+	if w.Logger == nil {
+		w.Logger = w.RestClient.Config.Logger
+	}
+
+	w.Prepared = true
+
+	return nil
+}
+
 // Opens a websocket connection to the gateway
 func (w *GatewayClient) Open() error {
 	if !w.Prepared {
-		return errors.New("gateway client not prepared")
+		err := w.PrepareWS()
+
+		if err != nil {
+			return err
+		}
 	}
 
 	// Ensure there is only one Open() call at a time

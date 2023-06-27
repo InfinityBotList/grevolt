@@ -183,6 +183,30 @@ type ReportStatus struct {
 	ClosedAt timestamp.Timestamp `json:"closed_at,omitempty"`
 }
 
+// Additional report description
+type DataReportContent struct {
+	// Content being reported
+	Content *DataReportContentContent `json:"content"`
+	// Additional report description
+	AdditionalContext string `json:"additional_context,omitempty"`
+}
+
+// The content being reported
+type DataReportContentContent struct {
+	// Type of content being reported, either Message, Server or User
+	Type string `json:"type"`
+	// ID of the message/server/user being reported
+	//
+	// <this is mandatory for all types>
+	Id string `json:"id"`
+	// Reason for reporting this message/server/user
+	//
+	// <this is mandatory for all types>
+	ReportReason string `json:"report_reason"`
+	// Message context (only is Type is Message)
+	MessageId string `json:"message_id,omitempty"`
+}
+
 // User-generated platform moderation report.
 type Report struct {
 	// Unique Id
@@ -204,4 +228,30 @@ type DataEditReport struct {
 	Status *ReportStatus `json:"status,omitempty"`
 	// Report notes
 	Notes string `json:"notes,omitempty"`
+}
+
+// -- Strikes --
+
+// New strike information
+type DataCreateStrike struct {
+	// Id of reported user
+	UserId string `json:"user_id"`
+	// Attached reason
+	Reason string `json:"reason"`
+}
+
+// New strike information
+type DataEditAccountStrike struct {
+	// New attached reason
+	Reason string `json:"reason"`
+}
+
+// Account Strike on a user
+type AccountStrike struct {
+	// Strike Id
+	Id string `json:"_id"`
+	// Id of reported user
+	UserId string `json:"user_id"`
+	// Attached reason
+	Reason string `json:"reason"`
 }

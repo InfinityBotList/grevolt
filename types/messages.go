@@ -2,6 +2,18 @@ package types
 
 import "github.com/infinitybotlist/grevolt/types/timestamp"
 
+// MessageSort : Sort used for retrieving messages
+type MessageSort string
+
+// List of MessageSort
+const (
+	RELEVANCE_MessageSort MessageSort = "Relevance"
+	LATEST_MessageSort    MessageSort = "Latest"
+	OLDEST_MessageSort    MessageSort = "Oldest"
+)
+
+type MessageList []*Message
+
 // Filter and sort messages by time
 type MessageQuery struct {
 	// Maximum number of messages to fetch
@@ -57,18 +69,6 @@ type MessageSearchQuery struct {
 	IncludeUsers bool `json:"include_users,omitempty"`
 }
 
-// MessageSort : Sort used for retrieving messages
-type MessageSort string
-
-// List of MessageSort
-const (
-	RELEVANCE_MessageSort MessageSort = "Relevance"
-	LATEST_MessageSort    MessageSort = "Latest"
-	OLDEST_MessageSort    MessageSort = "Oldest"
-)
-
-type MessageList []*Message
-
 type MessageFetchExtendedResponse struct {
 	// List of messages
 	Messages []Message `json:"messages,omitempty"`
@@ -95,9 +95,9 @@ type DataMessageSend struct {
 	// Embeds to include in message  Text embed content contributes to the content length cap
 	Embeds []SendableEmbed `json:"embeds,omitempty"`
 	// Masquerade to apply to this message
-	Masquerade *DataMessageSendMasquerade `json:"masquerade,omitempty"`
+	Masquerade *MessageMasquerade `json:"masquerade,omitempty"`
 	// Information about how this message should be interacted with
-	Interactions *DataMessageSendInteractions `json:"interactions,omitempty"`
+	Interactions *MessageInteractions `json:"interactions,omitempty"`
 }
 
 // This struct is data needed to edit a message.
@@ -108,25 +108,7 @@ type DataMessageEdit struct {
 	Embeds []SendableEmbed `json:"embeds,omitempty"`
 }
 
-// Information about how this message should be interacted with
-type DataMessageSendInteractions struct {
-	// Reactions which should always appear and be distinct
-	Reactions []string `json:"reactions,omitempty"`
-	// Whether reactions should be restricted to the given list  Can only be set to true if reactions list is of at least length 1
-	RestrictReactions bool `json:"restrict_reactions,omitempty"`
-}
-
-// Masquerade to apply to this message
-type DataMessageSendMasquerade struct {
-	// Replace the display name shown on this message
-	Name string `json:"name,omitempty"`
-	// Replace the avatar shown on this message (URL to image file)
-	Avatar string `json:"avatar,omitempty"`
-	// Replace the display role colour shown on this message  Must have `ManageRole` permission to use
-	Colour string `json:"colour,omitempty"`
-}
-
-// Information about how this message should be interacted with
+// Information to guide interactions on this message
 type MessageInteractions struct {
 	// Reactions which should always appear and be distinct
 	Reactions []string `json:"reactions,omitempty"`

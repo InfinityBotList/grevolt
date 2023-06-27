@@ -16,18 +16,18 @@ const (
 	SPAM_UserFlag = 8
 )
 
-type BotFlag int64
+type BotFlag = int64
 
 const (
-	VERIFIED_BotFlag = 1
-	OFFICIAL_BotFlag = 2
+	VERIFIED_BotFlag BotFlag = 1
+	OFFICIAL_BotFlag BotFlag = 2
 )
 
-type ServerFlag uint64
+type ServerFlag = int64
 
 const (
-	VERIFIED_ServerFlag = 1
-	OFFICIAL_ServerFlag = 2
+	VERIFIED_ServerFlag ServerFlag = 1
+	OFFICIAL_ServerFlag ServerFlag = 2
 )
 
 // Returns whether the user has the given flag

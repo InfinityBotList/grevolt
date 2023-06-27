@@ -118,13 +118,14 @@ type DataEditUser struct {
 	Remove []FieldsUser `json:"remove,omitempty"`
 }
 
-// Relationship entry indicating current status with other user
-type Relationship struct {
-	Id     string              `json:"_id"`
-	Status *RelationshipStatus `json:"status"`
-}
-
 type UserFlagResponse struct {
 	// Flags
 	Flags uint64 `json:"flags"`
+}
+
+type DataChangeUsername struct {
+	// New username
+	Username string `json:"username"`
+	// Current account password
+	Password string `json:"password"`
 }
