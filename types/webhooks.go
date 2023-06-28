@@ -1,5 +1,8 @@
 package types
 
+// WebhookList : List of webhooks
+type WebhookList []*Webhook
+
 // FieldsWebhook : Optional fields on webhook object
 //
 // <undocumented, from https://github.com/revoltchat/backend/blob/master/crates/core/database/src/models/channel_webhooks/ops/mongodb.rs#L71>
