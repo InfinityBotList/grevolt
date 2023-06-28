@@ -1,5 +1,8 @@
 package types
 
+// UserList : List of users
+type UserList []*User
+
 // UserPermission : User permission definitions
 type UserPermission string
 
