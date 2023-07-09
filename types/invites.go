@@ -8,6 +8,9 @@ const (
 	SERVER_InviteType InviteType = "Server"
 )
 
+// InviteList : A list of invites
+type InviteList []*Invite
+
 // Representation of an created invite on Revolt
 type Invite struct {
 	// The Id of the invite

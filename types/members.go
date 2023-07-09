@@ -88,17 +88,9 @@ type BanListResult struct {
 // Representation of a server ban on Revolt
 type ServerBan struct {
 	// Unique member id
-	Id *ServerBanId `json:"_id"`
+	Id *MemberId `json:"_id"`
 	// Reason for ban creation
 	Reason string `json:"reason,omitempty"`
-}
-
-// Unique member id
-type ServerBanId struct {
-	// Server Id
-	Server string `json:"server"`
-	// User Id
-	User string `json:"user"`
 }
 
 // Just enoguh user information to list bans.
