@@ -8,15 +8,11 @@ Grevolt seperates low-level ``Client`` operations from more higher level abstrac
 
 Other libraries had many flaws when inspected. Not to blame these projects, but here are some of the issues I found.
 
-- [Panic's on connection failures](https://github.com/sentinelb51/revoltgo/blob/6690504750626ba063fb10a6ca86ceb5e4e57111/websocket.go#L325) and when [failing to read a message](https://github.com/sentinelb51/revoltgo/blob/6690504750626ba063fb10a6ca86ceb5e4e57111/websocket.go#L95C4-L95C9) or when (different library) [json marshalling](https://github.com/ben-forster/revolt/blob/main/websocket.go#L38)
+- [Panicking on unsuccessful json marshalling](https://github.com/ben-forster/revolt/blob/main/websocket.go#L38)
 
-Revolt goes down a *lot* and in the future may even spew out invalid JSON as it grows, and panicking here is simply infeasible for larger bots. Grevolt instead returns an error and allows the user to handle it for example by restarting the bot or logging the error in a database for example. In addition to this, these libraries often don't `Ping` the 'official client' way (`data` is supposed to be a timestamp and not a constant)
+Revolt goes down a *lot* and in the future may even spew out invalid JSON as it grows, and panicking here is simply infeasible for larger bots. Grevolt instead returns an error and allows the user to handle it for example by restarting the bot or logging the error in a database for example. In addition to this, these libraries often don't `Ping` the 'official client' way (`data` is supposed to be a timestamp and [not a constant](https://github.com/sentinelb51/revoltgo/blob/main/websocket.go#L115))
 
-Also, panicking on failing to read a message isn't ideal and libraries should aim to try and restart the websocket instead of outright panicking.
-
-- Poor concurrency, such as [using maps without a mutex](https://github.com/sentinelb51/revoltgo/blob/main/state.go) and generally lower quality code (including hardcoded JSONs in some libraries such as [this library](https://github.com/ben-forster/revolt).)
-
-Concurrent map writes in Go are not allowed making such libraries highly infeasible for large bots.
+- Poor concurrency, such as [blocking calls](https://github.com/ben-forster/revolt/blob/main/websocket.go#L46) and generally lower quality code (including [hardcoded JSONs](https://github.com/ben-forster/revolt/blob/main/websocket.go#L59C3-L59C3) in some libraries such as [this library](https://github.com/ben-forster/revolt).)
 
 ## Testing
 
@@ -29,6 +25,6 @@ Run ``go test -v ./...`` to test stuff
 
 ## Credits
 
-- https://github.com/sentinelb51/revoltgo for some models (embeds)
+- https://github.com/sentinelb51/revoltgo for some models (embeds), utilities (merge), and inspirations (permissions; they're beautiful, aren't they?)
 
 **Heavy work in progress**
