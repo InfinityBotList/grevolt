@@ -12,7 +12,7 @@ func (c *RestClient) FetchChannel(channelID string) (*types.Channel, error) {
 
 // Deletes a server channel, leaves a group or closes a group.
 func (c *RestClient) CloseChannel(channelID string, leaveSilently bool) error {
-	return rest.Request[types.APIError]{Method: rest.DELETE, Path: "channels/" + channelID + "?leave_silently=" + ternary(leaveSilently, "true", "false")}.NoContent(&c.Config)
+	return rest.Request[types.APIError]{Method: rest.DELETE, Path: "channels/" + channelID + "?leave_silently=" + boolean(leaveSilently)}.NoContent(&c.Config)
 }
 
 // Edit a channel object by its id.

@@ -71,7 +71,7 @@ func DefaultRestConfig() RestConfig {
 		RetryOnRatelimit: true,
 		Pester:           pester.New(),
 		OnMarshal: []func(r *RequestData, v any) error{
-			cache,
+			Cacher,
 		},
 	}
 }

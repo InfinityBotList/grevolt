@@ -16,6 +16,11 @@ func ternary(condition bool, trueVal, falseVal string) string {
 	return falseVal
 }
 
+// Helper method to shorten the common case of boolean to string conversion
+func boolean(condition bool) string {
+	return ternary(condition, "true", "false")
+}
+
 func runIf(condition bool, f func()) {
 	if condition {
 		f()

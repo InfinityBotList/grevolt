@@ -2,7 +2,7 @@ package rest
 
 import "github.com/infinitybotlist/grevolt/types"
 
-func cacheImpl(r *RequestData, v any) {
+func CacheImpl(r *RequestData, v any) {
 	// Doesn't do anything yet
 	switch v := v.(type) {
 	case *types.User:
@@ -11,14 +11,17 @@ func cacheImpl(r *RequestData, v any) {
 	case *types.Emoji:
 		// Add to cache
 		r.Config.SharedState.AddEmoji(v)
+	case *types.Server:
+		// Add to cache
+		r.Config.SharedState.AddServer(v)
 	}
 }
 
-func cache(r *RequestData, v any) error {
+func Cacher(r *RequestData, v any) error {
 	if r.Config.DisableRestCaching {
 		return nil
 	}
 
-	go cacheImpl(r, v)
+	go CacheImpl(r, v)
 	return nil
 }

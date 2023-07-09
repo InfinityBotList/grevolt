@@ -1,4 +1,4 @@
-// Defines permissions flags, taken from https://github.com/revoltchat/backend/blob/master/crates/quark/src/permissions/defn/permission.rs
+// Defines permissions flags, taken from https://github.com/revoltchat/backend/blob/master/crates/quark/src/permissions/defn/permission.rs and https://github.com/revoltchat/backend/blob/master/crates/quark/src/permissions/defn/user.rs#L21
 package permissions
 
 type Permission uint64
@@ -84,4 +84,20 @@ const (
 
 	/// Grant all permissions
 	GrantAll Permission = 18446744073709551615
+)
+
+// Inspired from https://github.com/sentinelb51/revoltgo/commit/c1d42c65e2554990292cbb072e65e9c6f90f7127
+const (
+	PresetViewOnly     = ViewChannel + ReadMessageHistory
+	PresetDefault      = PresetViewOnly + SendMessage + InviteOthers + SendEmbeds + UploadFiles + Connect + Speak
+	PermissionPresetDM = PresetDefault + React + ManageChannel
+)
+
+type UserPermissions uint64
+
+const (
+	UserPermissionsAccess      UserPermissions = 1 << 0
+	UserPermissionsViewProfile UserPermissions = 1 << 1
+	UserPermissionsSendMessage UserPermissions = 1 << 2
+	UserPermissionsInvite      UserPermissions = 1 << 3
 )

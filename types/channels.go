@@ -24,6 +24,7 @@ const (
 type Channel struct {
 	Id                 string                              `json:"_id,omitempty"`
 	ChannelType        ChannelType                         `json:"channel_type,omitempty"`
+	Server             string                              `json:"server,omitempty"`
 	UserId             string                              `json:"user,omitempty"`
 	Nonce              string                              `json:"nonce,omitempty"`
 	Active             bool                                `json:"active,omitempty"`
