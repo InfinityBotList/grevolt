@@ -69,8 +69,20 @@ func TestServerMembers(t *testing.T) {
 	t.Run("QueryMembersByName", testQueryMembersByName)
 	t.Run("FetchInvites", testFetchInvites)
 	t.Run("BanUser", testBanUser)
-	t.Run("UnbanUser", testUnbanUser)
 	t.Run("FetchBans", testFetchBans)
+	t.Run("UnbanUser", testUnbanUser)
+
+	// Invite bot to server (for kick api)
+	err = cli.Rest.InviteBot(qn.Id, &types.DataInviteBot{
+		Server: s.Server.Id,
+	})
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Run("KickMember", testKickMember)
 
 	// Delete server
 	err = cli.Rest.DeleteOrLeaveServer(s.Server.Id, true)
@@ -287,7 +299,23 @@ func testFetchBans(t *testing.T) {
 	t.Log("sb:", len(sb.Bans))
 }
 
-/*
-func testKickMember
-func testFetchBans
-*/
+func testKickMember(t *testing.T) {
+	if os.Getenv("TEST_SERVER_SMTESTS") == "" {
+		t.Skip("TEST_SERVER_SMTESTS is not set")
+		return
+	}
+
+	if os.Getenv("TEST_BOT_ID_SMTESTS") == "" {
+		t.Skip("TEST_BOT_ID_SMTESTS is not set")
+		return
+	}
+
+	cli := ITestStartup(t)
+
+	err := cli.Rest.KickMember(os.Getenv("TEST_SERVER_SMTESTS"), os.Getenv("TEST_BOT_ID_SMTESTS"))
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+}
