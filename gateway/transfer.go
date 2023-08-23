@@ -27,12 +27,9 @@ func (w *GatewayClient) Decode(data []byte, dst any) error {
 		err := decoded.Decode(&dst)
 
 		if err != nil {
-			w.Logger.Error("Decoding msgpack data", zap.Any("err", err), zap.Any("dst", dst))
+			return err
 		}
 
-		//dec := msgpack.NewDecoder(buf)
-		//dec.SetCustomStructTag("json")
-		//return dec.Decode(&dst)
 		return nil
 	}
 
