@@ -87,19 +87,19 @@ func main() {
 
 				// This is how you send custom events so other parts of your code can handle them
 				//
-				// Its mostly for debugging purposes tho
+				// Custom events must begin with @
 				var bulkCmd = &events.Bulk{
 					Event: events.Event{
 						Type: "Bulk",
 					},
 					V: []map[string]any{
 						{
-							"type": "MyTestBulkEvent",
+							"type": "@MyTestBulkEvent",
 							"data": 10293,
 							"whoa": "!",
 						},
 						{
-							"type": "MyTestBulkEvent",
+							"type": "@MyTestBulkEvent",
 							"data": 10294,
 							"whoa": "!",
 						},
@@ -182,48 +182,7 @@ func main() {
 		fmt.Println("MessageUnreact:", e, e.ChannelId, e.Id, e.UserId, e.EmojiId)
 	}
 
-	for i := 0; i < 2; i++ {
-		test1(&c, i)
-	}
-
-	test2(&c, 1)
-}
-
-func test1(c *client.Client, i int) {
-	err := c.Websocket.Open()
-
-	if err != nil {
-		panic(err)
-	}
-
-	go func() {
-		time.Sleep(5 * time.Second)
-
-		// Close the client
-		//fmt.Println("Closing", i)
-		//c.Websocket.Close()
-
-		/*time.Sleep(10 * time.Second)
-
-		c.Websocket.BeginTyping("01GDT82E0JPN8K40TDGM33QPXS")
-
-		time.Sleep(2 * time.Second)
-
-		c.Websocket.EndTyping("01GDT82E0JPN8K40TDGM33QPXS")
-
-		// Wait for 30 seconds
-		time.Sleep(30 * time.Second)
-
-		// Close the client
-		fmt.Println("Closing", i)
-		c.Websocket.Close()*/
-	}()
-
-	c.Websocket.Wait()
-}
-
-func test2(c *client.Client, i int) {
-	err := c.Websocket.Open()
+	err = c.Websocket.Open()
 
 	if err != nil {
 		panic(err)
@@ -231,19 +190,15 @@ func test2(c *client.Client, i int) {
 
 	go func() {
 		// Wait for 10 seconds
-		time.Sleep(10 * time.Second)
+		time.Sleep(20 * time.Second)
 
 		// Close the client
-		fmt.Println("Restarting", i, c.Websocket.StatusChannel.ListenersCount())
+		fmt.Println("Restarting", c.Websocket.StatusChannel.ListenersCount())
 
 		// Send restart payload
-		for {
-			c.Websocket.NotifyChannel.Broadcast(&gateway.NotifyPayload{
-				OpCode: gateway.RESTART_IOpCode,
-			})
-
-			time.Sleep(10 * time.Second)
-		}
+		c.Websocket.NotifyChannel.Broadcast(&gateway.NotifyPayload{
+			OpCode: gateway.RESTART_IOpCode,
+		})
 	}()
 
 	c.Websocket.Wait()
