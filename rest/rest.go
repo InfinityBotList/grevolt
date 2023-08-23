@@ -117,7 +117,7 @@ func (r Request[T]) Request(config *RestConfig) (*http.Response, error) {
 
 		if config.RetryOnRatelimit {
 			config.Logger.Error("Request failed [ratelimited]", zap.String("path", r.Path), zap.String("status", resp.Status), zap.Int64("retryIn", rl.RetryAfter))
-			time.Sleep(time.Duration(rl.RetryAfter) * time.Millisecond)
+			time.Sleep(time.Duration(rl.RetryAfter)*time.Millisecond + time.Duration(r.sequence)*2*time.Millisecond)
 
 			config.Ratelimiter.LockBucketObject(r.bucket)
 			r.sequence++
