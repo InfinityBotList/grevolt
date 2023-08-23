@@ -564,14 +564,18 @@ func (w *GatewayClient) handleNotify() {
 		w.WsConn.Close()
 		w.State = WsStateRestarting
 
-		w.Logger.Debug("broadcasting status message")
+		w.Logger.Debug("broadcasting WSEND message")
 
 		w.StatusChannel.Broadcast(&StatusPayload{
 			StatusMessage: WSEND_StatusMessage,
 		})
 
 		w.Logger.Debug("opening new connection to gateway")
-		go w.Open()
+		err := w.Open()
+
+		if err != nil {
+			w.Logger.Error("failed to open connection to gateway", zap.Error(err))
+		}
 	}
 
 	killer := func() {

@@ -1,6 +1,11 @@
 package gateway
 
-import "github.com/infinitybotlist/grevolt/types/events"
+import (
+	"strings"
+
+	"github.com/infinitybotlist/grevolt/types/events"
+	"go.uber.org/zap"
+)
 
 // Event handler for the websocket
 //
@@ -254,7 +259,10 @@ func (e *EventHandlers) handle(w *GatewayClient, event []byte, typ string) (even
 	case "Auth":
 		return CreateEvent[events.Auth](w, event, w.EventHandlers.Auth)
 	default:
-		w.Logger.Warn("Unknown event type: " + typ)
+		if !strings.HasPrefix(typ, "@") {
+			w.Logger.Warn("Unknown event type", zap.String("type", typ))
+		}
+
 		return nil, nil
 	}
 }
