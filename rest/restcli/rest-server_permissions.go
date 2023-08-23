@@ -35,12 +35,12 @@ func (c *RestClient) EditRole(target, roleId string, d *types.DataEditRole) (*ty
 // <target is the server id>
 // <roleId is the role id>
 func (c *RestClient) SetRolePermission(target, roleId string, d *types.PermissionsPatchOverrideField) (*types.Server, error) {
-	return rest.Request[types.Server]{Method: rest.PATCH, Path: "servers/" + target + "/permissions/" + roleId, Json: d}.With(&c.Config)
+	return rest.Request[types.Server]{Method: rest.PUT, Path: "servers/" + target + "/permissions/" + roleId, Json: d}.With(&c.Config)
 }
 
 // Sets permissions for the default role in this server.
 //
 // <target is the server id>
-func (c *RestClient) SetDefaultPermission(target string, d *types.PermissionsPatchOverrideField) (*types.Server, error) {
-	return rest.Request[types.Server]{Method: rest.PATCH, Path: "servers/" + target + "/permissions", Json: d}.With(&c.Config)
+func (c *RestClient) SetDefaultPermission(target string, d *types.PermissionUpdate) (*types.Server, error) {
+	return rest.Request[types.Server]{Method: rest.PUT, Path: "servers/" + target + "/permissions/default", Json: d}.With(&c.Config)
 }

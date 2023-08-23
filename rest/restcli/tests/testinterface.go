@@ -64,5 +64,7 @@ func ITestStartup(t *testing.T) client.Client {
 		Token: config.SessionTokenUser,
 	})
 
+	c.Rest.Config.APIUrl = "https://app.revolt.chat/api/"
+
 	return c
 }
