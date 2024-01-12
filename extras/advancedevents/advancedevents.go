@@ -3,8 +3,10 @@
 package advancedevents
 
 import (
+	"strconv"
+
 	"github.com/infinitybotlist/grevolt/gateway"
-	"github.com/infinitybotlist/grevolt/types/events"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 )
 
 type EventHandlerFunc[T events.EventInterface] func(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *T) error
@@ -84,9 +86,9 @@ func (ef *EventHandler[T]) AddGlobalErrorHandler(fn ErrorHandler[T]) *EventHandl
 
 // Adds an simple event handler
 func (ef *EventHandler[T]) Add(fns ...EventHandlerFunc[T]) *EventHandler[T] {
-	for _, fn := range fns {
+	for i, fn := range fns {
 		h := append(ef.Handlers, EventFunc[T]{
-			ID:      "",
+			ID:      strconv.Itoa(i),
 			Handler: fn,
 		})
 		ef.Handlers = h
@@ -102,6 +104,23 @@ func (ef *EventHandler[T]) AddRaw(fns ...EventFunc[T]) *EventHandler[T] {
 		ef.Handlers = h
 	}
 
+	return ef
+}
+
+// Removes an event handler by ID
+func (ef *EventHandler[T]) RemoveByID(id string) *EventHandler[T] {
+	for i, fn := range ef.Handlers {
+		if fn.ID == id {
+			ef.Handlers = append(ef.Handlers[:i], ef.Handlers[i+1:]...)
+		}
+	}
+
+	return ef
+}
+
+// Removes an event handler by index
+func (ef *EventHandler[T]) RemoveByIndex(index int) *EventHandler[T] {
+	ef.Handlers = append(ef.Handlers[:index], ef.Handlers[index+1:]...)
 	return ef
 }
 

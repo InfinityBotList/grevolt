@@ -82,7 +82,7 @@ type NotifyEvent struct {
 // NotifyPayload is a payload that is sent to the NotifyChannel
 //
 // This is used to control the WS, and to send events to the EventHandlers. It is
-// also highly unstable, you likely want to use the EventHandlers instead.
+// also highly unstable.
 //
 // +unstable
 type NotifyPayload struct {
@@ -115,19 +115,16 @@ type StatusPayload struct {
 }
 
 type Heartbeat struct {
-	// Last time a ping was sent
-	LastHeartbeatSent time.Time
+	// What time the ping was sent
+	HeartbeatSent time.Time
 
-	// Last time a ping was received
-	LastHeartbeatAck time.Time
-
-	// Interval
-	HeartbeatInterval time.Duration
+	// What time the ping was received
+	HeartbeatAck time.Time
 }
 
 // Returns the websocket latency
 func (h *Heartbeat) Latency() time.Duration {
-	return h.LastHeartbeatAck.Sub(h.LastHeartbeatSent)
+	return h.HeartbeatAck.Sub(h.HeartbeatSent)
 }
 
 type GatewayCacher struct {
@@ -160,8 +157,11 @@ type GatewayClient struct {
 	// WS Deadline
 	Deadline time.Duration
 
-	// Heartbeat data
-	Heartbeat *Heartbeat
+	// Last heartbeat data
+	LastHeartbeat *Heartbeat
+
+	// Interval at which to heartbeat at
+	HeartbeatInterval time.Duration
 
 	// Logger to use, will be autofilled if not provided
 	Logger *zap.Logger
@@ -214,14 +214,25 @@ type GatewayClient struct {
 	RawSinkFunc []func(w *GatewayClient, data []byte, typ string)
 
 	// Whether to disable websocket-based caching
+	//
+	// To be improved
 	GatewayCache GatewayCacher
+}
+
+// DefaultGatewayConfig return the default configuration for the gateway client client with the given state
+func DefaultGatewayConfig(rest *restcli.RestClient, state *state.State) *GatewayClient {
+	return &GatewayClient{
+		APIVersion:  "1",
+		Timeout:     10 * time.Second,
+		SharedState: state,
+		Encoding:    "json",
+		RestClient:  rest,
+	}
 }
 
 func (w *GatewayClient) GatewayURL() string {
 	gwUrl := w.WSUrl + "?v=" + w.APIVersion + "&format=" + w.Encoding
-
 	w.Logger.Debug("gateway url: " + gwUrl)
-
 	return gwUrl
 }
 
@@ -246,6 +257,8 @@ func (w *GatewayClient) Prepare() error {
 	if w.Logger == nil {
 		w.Logger = w.RestClient.Config.Logger
 	}
+
+	w.LastHeartbeat = &Heartbeat{}
 
 	w.Prepared = true
 
@@ -278,16 +291,6 @@ func (w *GatewayClient) Open() error {
 		w.Deadline = 60 * time.Second
 	}
 
-	if w.Heartbeat == nil {
-		w.Heartbeat = &Heartbeat{
-			HeartbeatInterval: 10 * time.Second,
-		}
-	}
-
-	if w.Heartbeat.HeartbeatInterval == 0 {
-		w.Heartbeat.HeartbeatInterval = 10 * time.Second
-	}
-
 	if w.Timeout == 0 {
 		w.Timeout = 10 * time.Second
 	}
@@ -304,7 +307,7 @@ func (w *GatewayClient) Open() error {
 	w.WsConn = nil
 
 	if w.Encoding == "" {
-		w.Encoding = "json"
+		return errors.New("no encoding provided")
 	}
 
 	if w.Encoding != "json" && w.Encoding != "msgpack" {
@@ -449,8 +452,7 @@ func (w *GatewayClient) readMessages() {
 				case "Pong":
 					w.Logger.Debug("recieved pong from gateway")
 
-					w.Heartbeat.LastHeartbeatAck = time.Now()
-
+					w.LastHeartbeat.HeartbeatAck = time.Now()
 					w.WsConn.SetReadDeadline(time.Now().Add(w.Deadline))
 					err = false
 				case "NotFound": // Undocumented, but means that auth credentials are invalid
@@ -491,7 +493,7 @@ func (w *GatewayClient) readMessages() {
 					})
 				case "Authenticated":
 					w.Logger.Debug("received Authenticated flag")
-					go w.heartbeat()
+					go w.StartHeartbeatLoop(10 * time.Second)
 					err = false
 				default: // No error, continue
 					err = false
@@ -630,11 +632,19 @@ func (w *GatewayClient) handleNotify() {
 	}
 }
 
-func (w *GatewayClient) heartbeat() {
+// Starts a loop to send heartbeats every duration
+//
+// In most cases, you should not need to call this manually
+func (w *GatewayClient) StartHeartbeatLoop(dur time.Duration) {
 	hbStartTime := time.Now().Nanosecond()
 	w.Logger.Debug("starting heartbeat ", zap.Int("start_time", hbStartTime))
+
+	if w.HeartbeatInterval == 0 {
+		w.HeartbeatInterval = dur
+	}
+
 	// Create new ticker
-	ticker := time.NewTicker(w.Heartbeat.HeartbeatInterval)
+	ticker := time.NewTicker(w.HeartbeatInterval)
 
 	// Send heartbeat
 	sub := w.StatusChannel.Subscribe()
@@ -669,7 +679,7 @@ func (w *GatewayClient) heartbeat() {
 				"data": time.Now().Unix(),
 			})
 
-			w.Heartbeat.LastHeartbeatSent = time.Now()
+			w.LastHeartbeat.HeartbeatSent = time.Now()
 		}
 	}
 }

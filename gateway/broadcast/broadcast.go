@@ -1,4 +1,6 @@
-// https://betterprogramming.pub/how-to-broadcast-messages-in-go-using-channels-b68f42bdf32e
+// Idea from: https://betterprogramming.pub/how-to-broadcast-messages-in-go-using-channels-b68f42bdf32e
+//
+// With grevolt-specific changes
 package broadcast
 
 import (

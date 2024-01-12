@@ -3,7 +3,7 @@ package gateway
 import (
 	"strings"
 
-	"github.com/infinitybotlist/grevolt/types/events"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 	"go.uber.org/zap"
 )
 
@@ -176,8 +176,8 @@ type EventHandlers struct {
 	Auth_DeleteAllSessions Event[events.Auth_DeleteAllSessions]
 }
 
-// Handle handles an event. It acts as a dispatch table for the events.
-func (e *EventHandlers) handle(w *GatewayClient, event []byte, typ string) (events.EventInterface, error) {
+// Handle handles an event. It acts as a dispatch table for the events
+func (e *EventHandlers) Handle(w *GatewayClient, event []byte, typ string) (events.EventInterface, error) {
 	// Now, just broadcast the event to the correct handler
 	switch typ {
 	case "Error":

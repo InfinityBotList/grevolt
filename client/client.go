@@ -2,13 +2,11 @@ package client
 
 import (
 	"os"
-	"time"
 
 	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/cache/state"
 	"github.com/infinitybotlist/grevolt/cache/store/basicstore"
 	"github.com/infinitybotlist/grevolt/gateway"
-	"github.com/infinitybotlist/grevolt/rest"
 	"github.com/infinitybotlist/grevolt/rest/restcli"
 	"github.com/infinitybotlist/grevolt/types"
 	"go.uber.org/zap"
@@ -22,7 +20,7 @@ type Client struct {
 }
 
 // New returns a new client with default options
-func New() Client {
+func New() *Client {
 	w := zapcore.AddSync(os.Stdout)
 
 	var level = zap.InfoLevel
@@ -46,26 +44,21 @@ func New() Client {
 		Emojis:   &basicstore.BasicStore[types.Emoji]{},
 	}
 
-	c := Client{
-		Rest: &restcli.RestClient{
-			Config: rest.DefaultRestConfig(),
-		},
-		Websocket: &gateway.GatewayClient{
-			APIVersion:  "1",
-			Timeout:     10 * time.Second,
-			SharedState: &s,
-		},
-		State: &s,
-	}
+	rest := restcli.DefaultRestClient(&s)
 
-	c.Rest.Config.SharedState = &s
+	ws := gateway.DefaultGatewayConfig(rest, &s)
+
+	c := Client{
+		Rest:      rest,
+		Websocket: ws,
+		State:     &s,
+	}
 
 	c.Rest.Config.Logger = logger.Named("rest")
 	c.Rest.Config.Ratelimiter.Logger = logger.Named("ratelimiter")
 	c.Websocket.Logger = logger.Named("websocket")
-	c.Websocket.RestClient = c.Rest
 
-	return c
+	return &c
 }
 
 // Authorizes to both rest and websocket (websocket not implemented yet)

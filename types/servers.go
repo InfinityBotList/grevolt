@@ -25,11 +25,11 @@ type Server struct {
 	// Channels within this server
 	Channels []string `json:"channels"`
 	// Categories for this server
-	Categories []Category `json:"categories,omitempty"`
+	Categories []*Category `json:"categories,omitempty"`
 	// Configuration for sending system event messages
 	SystemMessages *SystemMessageChannels `json:"system_messages,omitempty"`
 	// Roles for this server
-	Roles map[string]Role `json:"roles,omitempty"`
+	Roles map[string]*Role `json:"roles,omitempty"`
 	// Default set of server and channel permissions
 	DefaultPermissions uint64 `json:"default_permissions"`
 	// Icon attachment
@@ -61,7 +61,7 @@ type CreateServerResponse struct {
 	// Server object
 	Server *Server `json:"server"`
 	// Default channels
-	Channels []Channel `json:"channels"`
+	Channels []*Channel `json:"channels"`
 }
 
 // Data to edit a server
@@ -75,7 +75,7 @@ type DataEditServer struct {
 	// Attachment Id for banner
 	Banner string `json:"banner,omitempty"`
 	// Category structure for server
-	Categories []Category `json:"categories,omitempty"`
+	Categories []*Category `json:"categories,omitempty"`
 	// System message configuration
 	SystemMessages *SystemMessageChannels `json:"system_messages,omitempty"`
 	// Bitfield of server flags
@@ -85,5 +85,5 @@ type DataEditServer struct {
 	// Whether analytics should be collected for this server  Must be enabled in order to show up on [Revolt Discover](https://rvlt.gg).
 	Analytics bool `json:"analytics,omitempty"`
 	// Fields to remove from server object
-	Remove []FieldsServer `json:"remove,omitempty"`
+	Remove []*FieldsServer `json:"remove,omitempty"`
 }

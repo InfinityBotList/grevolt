@@ -54,9 +54,9 @@ type PublicBot struct {
 // Both lists are sorted by their IDs.
 type OwnedBotsResponse struct {
 	// Bot objects
-	Bots []Bot `json:"bots"`
+	Bots []*Bot `json:"bots"`
 	// User objects
-	Users []User `json:"users"`
+	Users []*User `json:"users"`
 }
 
 // Bot Response
@@ -96,5 +96,5 @@ type DataEditBot struct {
 	// Interactions URL
 	InteractionsUrl string `json:"interactions_url,omitempty"`
 	// Fields to remove from bot object
-	Remove []FieldsBot `json:"remove,omitempty"`
+	Remove []*FieldsBot `json:"remove,omitempty"`
 }

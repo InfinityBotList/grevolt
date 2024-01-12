@@ -1,13 +1,17 @@
 package types
 
-type ChannelList []Channel
+type ChannelList []*Channel
 
+// The type of Revolt Channel
 type ChannelType string
 
 // List of ChannelType
 const (
-	TEXT_ChannelType  ChannelType = "Text"
-	VOICE_ChannelType ChannelType = "Voice"
+	SAVEDMESSAGES_ChannelType ChannelType = "SavedMessages"
+	DIRECTMESSAGE_ChannelType ChannelType = "DirectMessage"
+	GROUP_ChannelType         ChannelType = "Group"
+	TEXTCHANNEL_ChannelType   ChannelType = "TextChannel"
+	VOICECHANNEL_ChannelType  ChannelType = "VoiceChannel"
 )
 
 // FieldsChannel : Optional fields on channel object

@@ -11,8 +11,8 @@ import (
 	"github.com/infinitybotlist/grevolt/extras/advancedevents"
 	"github.com/infinitybotlist/grevolt/extras/gatewaymiddleware"
 	"github.com/infinitybotlist/grevolt/gateway"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 	"github.com/infinitybotlist/grevolt/types"
-	"github.com/infinitybotlist/grevolt/types/events"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )

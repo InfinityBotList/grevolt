@@ -2,7 +2,7 @@ package advancedevents
 
 import (
 	"github.com/infinitybotlist/grevolt/gateway"
-	"github.com/infinitybotlist/grevolt/types/events"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 )
 
 type Multi[T events.EventInterface] struct {

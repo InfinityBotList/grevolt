@@ -3,7 +3,7 @@ package gateway
 import (
 	"errors"
 
-	"github.com/infinitybotlist/grevolt/types/events"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 	"go.uber.org/zap"
 )
 
@@ -133,7 +133,7 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 		)
 	}
 
-	evt, err := w.EventHandlers.handle(w, event, typ)
+	evt, err := w.EventHandlers.Handle(w, event, typ)
 
 	if err != nil {
 		w.Logger.Error(
@@ -147,7 +147,7 @@ func (w *GatewayClient) HandleEvent(event []byte, typ string) {
 	// Handle caching here
 	if evt != nil && !w.GatewayCache.Disable {
 		go func() {
-			err := w.cacheEvent(typ, evt)
+			err := w.CacheEvent(evt)
 
 			if err != nil {
 				w.Logger.Error(

@@ -7,7 +7,7 @@ import (
 	"github.com/infinitybotlist/grevolt/auth"
 	"github.com/infinitybotlist/grevolt/client"
 	"github.com/infinitybotlist/grevolt/gateway"
-	"github.com/infinitybotlist/grevolt/types/events"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,7 +15,7 @@ var config struct {
 	SessionTokenBot string `yaml:"session_token_bot"`
 }
 
-var Client client.Client
+var Client *client.Client
 
 func main() {
 	// Open config.yaml

@@ -59,8 +59,8 @@ type RestConfig struct {
 	DisableRestCaching bool
 }
 
-// DefaultRestConfig is the default configuration for the client
-func DefaultRestConfig() RestConfig {
+// DefaultRestConfig return the default configuration for the client with the given state
+func DefaultRestConfig(state *state.State) RestConfig {
 	return RestConfig{
 		APIUrl:      RevoltAPIStaging,
 		Timeout:     10 * time.Second,
@@ -73,6 +73,7 @@ func DefaultRestConfig() RestConfig {
 		OnMarshal: []func(r *RequestData, v any) error{
 			Cacher,
 		},
+		SharedState: state,
 	}
 }
 

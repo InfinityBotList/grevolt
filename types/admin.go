@@ -7,9 +7,9 @@ import "github.com/infinitybotlist/grevolt/types/timestamp"
 // <these are technical admin stats>
 type Stats struct {
 	// Index usage information
-	Indices map[string][]Index `json:"indices"`
+	Indices map[string][]*Index `json:"indices"`
 	// Collection stats
-	CollStats map[string]CollectionStats `json:"coll_stats"`
+	CollStats map[string]*CollectionStats `json:"coll_stats"`
 }
 
 // Collection index
@@ -24,7 +24,7 @@ type Index struct {
 type IndexAccesses struct {
 	// Operations since timestamp
 	Ops uint64 `json:"ops"`
-	// Timestamp at which data keeping begun
+	// Timestamp at which data keeping began
 	Since timestamp.Timestamp `json:"since"`
 }
 
@@ -35,7 +35,7 @@ type CollectionStats struct {
 	// Local time
 	LocalTime timestamp.Timestamp `json:"localTime"`
 	// Latency stats
-	LatencyStats map[string]LatencyStats `json:"latencyStats"`
+	LatencyStats map[string]*LatencyStats `json:"latencyStats"`
 	// Query exec stats
 	QueryExecStats *CollectionStatsQueryExecStats `json:"queryExecStats"`
 	// Number of documents in collection
@@ -49,7 +49,7 @@ type LatencyStats struct {
 	// Timestamp at which data keeping begun
 	Latency uint64 `json:"latency"`
 	// Histogram representation of latency data
-	Histogram []LatencyHistogramEntry `json:"histogram"`
+	Histogram []*LatencyHistogramEntry `json:"histogram"`
 }
 
 // Histogram entry

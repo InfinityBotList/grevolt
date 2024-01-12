@@ -3,8 +3,6 @@ testprog/**/config.yaml
 usage/**/config.yaml
 testprog/**/usage
 testprog/**/tester
-testprog/02-websocket/02-websocket
 usage/01-basics/01-basics
 us
 test.yaml
-test.yaml.sample

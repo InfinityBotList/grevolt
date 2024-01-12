@@ -27,7 +27,7 @@ const (
 )
 
 // Defines a set of common functions for testing
-func ITestStartup(t *testing.T) client.Client {
+func ITestStartup(t *testing.T) *client.Client {
 	// Use git rev-parse --show-toplevel to get the root directory
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 

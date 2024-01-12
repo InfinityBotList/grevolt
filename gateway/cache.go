@@ -5,12 +5,14 @@ import (
 
 	"github.com/infinitybotlist/grevolt/cache/diff"
 	"github.com/infinitybotlist/grevolt/cache/store"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 	"github.com/infinitybotlist/grevolt/types"
-	"github.com/infinitybotlist/grevolt/types/events"
 	"go.uber.org/zap"
 )
 
-func (w *GatewayClient) cacheEvent(typ string, d events.EventInterface) error {
+// Adds an event to the cache
+func (w *GatewayClient) CacheEvent(d events.EventInterface) error {
+	typ := d.EventType()
 	switch typ {
 	case "Ready":
 		evt := d.(*events.Ready)

@@ -6,8 +6,8 @@ import (
 	"github.com/infinitybotlist/grevolt/cache/resolvers"
 	"github.com/infinitybotlist/grevolt/cache/store/basicstore"
 	"github.com/infinitybotlist/grevolt/gateway"
+	"github.com/infinitybotlist/grevolt/gateway/events"
 	"github.com/infinitybotlist/grevolt/types"
-	"github.com/infinitybotlist/grevolt/types/events"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +45,7 @@ func messageHandler(w *gateway.GatewayClient, ctx *gateway.EventContext, evt *ev
 	case "ping":
 		// Send a message to the channel
 		w.RestClient.SendMessage(evt.Channel, &types.DataMessageSend{
-			Content: "Pong: " + w.Heartbeat.Latency().String(),
+			Content: "Pong: " + w.LastHeartbeat.Latency().String(),
 		})
 	case "cacheduserlist":
 		store := w.SharedState.Users.(*basicstore.BasicStore[types.User])
